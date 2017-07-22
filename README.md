@@ -1,2 +1,2 @@
-# zhelun-msc-thesis
-Zhelun Wu Masters thesis latex source code.
+# vivian-msc-thesis
+Vivian Masters thesis latex source code.
