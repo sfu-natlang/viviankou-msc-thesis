@@ -1,0 +1,195 @@
+\documentclass{sfuthesis}
+\title{Fast Neural Network Models for Sequence Tagging}
+\thesistype{Thesis}
+\author{Xinxin Kou}
+\previousdegrees{%
+	B.Sc. (Hons.), Dalhousie University, 2015}
+\degree{Master of Science}
+\discipline{Computing Science}
+\department{School of Computing Science}
+\faculty{Faculty of Applied Sciences}
+\copyrightyear{2017}
+\semester{Fall 2017}
+\date{12 September 2017}
+
+\keywords{Natural Language Processing;}
+
+
+%   PACKAGES AND CUSTOMIZATIONS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Add any packages or custom commands you need for your thesis here.
+%   You don't need to call the following packages, which are already called in
+%   the sfuthesis class file:
+%
+%   - appendix
+%   - etoolbox
+%   - fontenc
+%   - geometry
+%   - lmodern
+%   - nowidow
+%   - setspace
+%   - tocloft
+%
+%   If you call one of the above packages (or one of their dependencies) with
+%   options, you may get a ''Option clash'' LaTeX error. If you get this error,
+%   you can fix it by removing your copy of \usepackage and passing the options
+%   you need by adding
+%
+%       \PassOptionsToPackage{<options>}{<package>}
+%
+%   before \documentclass{sfuthesis}.
+%
+\usepackage{natbib}
+\usepackage{apalike}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+%\usepackage[numbers]{natbib}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{underscore}
+
+
+\newcommand{\quotes}[1]{\textrm{``#1''}}
+
+%   FRONTMATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Title page, committee page, copyright declaration, abstract,
+%   dedication, acknowledgements, table of contents, etc.
+%
+
+\begin{document}
+
+\frontmatter
+\maketitle{}
+\makecommittee{}
+
+\begin{abstract}
+Sequence Tagging including part of speech tagging, chunking, named entity recognition is an important task in NLP. The recurrent neural network models such as the BiLSTM-CRF model have produced impressive results on sequence tagging. In this work, we present variant simple and fast feed-forward neural network models for use in greedy sequence tagging tasks. Besides the model of a simple feed-forward neural network with a small number of features, we provide a novel model using byte pair encoding on words for part-of-speech tagging, and a multitask model separating boundary and tag prediction for chunking and named entity recognition. We carefully design the experiments to show the relationship between speed and accuracy while using different models. Our experiment results show that the variants of feed-forward neural network models can achieve comparable accuracies and faster speed than the recurrent models on sequence tagging.
+\end{abstract}
+
+
+\begin{acknowledgements} % optional
+
+I would like to show my appreciation to my supervisor Dr.\ Anoop Sarkar for the continuous support of my Masters study and research, for his patience, motivation, enthusiasm, and immense knowledge. His guidance helped me all the time, during the research and writing of this thesis. I could not have imagined having a better advisor and mentor for my Masters studies.
+
+Thanks to all of my natural language processing lab mates who helped me during these two years and I really enjoyed being with them. 
+
+
+\end{acknowledgements}
+
+\addtoToC{Table of Contents}\tableofcontents\clearpage
+\addtoToC{List of Tables}\listoftables\clearpage
+\addtoToC{List of Figures}\listoffigures
+
+
+
+
+
+%   MAIN MATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Start writing your thesis --- or start \include ing chapters --- here.
+%
+
+\mainmatter%
+
+\chapter{Introduction}
+
+
+\section{Background}
+Machine learning learns a model from observed data to enable it to make predictions on the unseen data. 
+
+%Cyberbullying, sexting, profanity and other forms of malicious chat messages become popular online. Users are facing an unhealthy online environment. The rule based filtering system are commonly used to filter out these malicious messages in order to prevent users from these unhealthy information. However, some malicious messages being corrupted by users can still get past the filtering system. There are several ways to detect and filter these corrupted malicious messages. More modern techniques use machine learning classifiers to identify malicious messages in order to filter them out. But, such methods are still prone to the problem that users can adapt their encryption methods of hiding their original intently since the classifier is static, while the users change their behavior. We assume that the original message is edited by a malicious user into a cipher text. We apply the unsupervised learning methods to automatically convert such messages back into their plain text. The plain text we deciphered is more likely being filtered out by the filtering system. Since we aim to decipher {\em any possible} way to encode the message, our method is immune to many (but not all) types of attempts to hide the message using new and intensive techniques.  For instance, let us assume that the offensive message is {\em you are a bunny} and the hidden message that tries to get past the filtering method is {\em ura B*n@n@ee } we can decode the original messages by learning the character mappings that lead to plausible message as determined by an English language model.  Due to the lack of malicious chat messages, we parse the Wiktionary dataset and get the English sentences with offensive or normal tags as the dataset. We simulate the way users encode the messages and then we use Expectation Maximization (~\citeauthor{Dempster:77} ~\citeyear{Dempster:77}) and beam search to decode the most likely original message. 
+
+%\section{Statistical Machine Translation}
+
+% Statistical Machine Translation (SMT) is generating translation based on the statistical model trained on the bilingual text corpora. As illustrated in Figure \ref{}, the general structure of machine translation requires a method for computing language model probabilities, a method for computing the translation model probabilities and a method for searching among possible target sentences with highest likelihood score. For the SMT, there are noisy channel model framework 
+
+% Decipherment has also been used in statistical machine translation. The state-of-art machine translation uses statistical model inferences from bilingual text corpora to generate translation. While bilingual text corpora or parallel corpora is limited in many language pairs and domains (~\citeauthor{dou2013dependency}, ~\citeyear{dou2013dependency})~\cite{dou2013dependency}, the decipherment approach is used to generate the parallel corpora
+
+% Since previous works people focus on the decipherment on ancient language or helping the statistical machine translation, we come up with a new problem that can also be solved by decipherment. It is the evasive or encrypted offensive text which unusually happens in chat messages.
+
+
+
+\section{Motivation}
+
+
+\section{Contribution}
+
+
+%Due to the lack of malicious chat messages, we parse the Wiktionary dataset and get the English sentences with offensive or normal tags as the dataset. We simulate the way users encode the messages and then we use Expectation Maximization (~\citeauthor{Dempster:77} ~\citeyear{Dempster:77}) and beam search to decode the most likely original message. 
+
+\section{Overview}
+The thesis is organized as follows:
+
+In \textbf{Chapter 2}  
+
+In \textbf{Chapter 3} 
+
+In \textbf{Chapter 4} we explain the experiments and show the experimental results.
+
+In \textbf{Chapter 5} we summarize the experimental results of the previous chapter.
+
+\chapter{Feedforward Neural Network}
+
+\chapter{Decipherment}
+
+
+\chapter{Experimental Results}
+\label{ch:Experiment}
+\section{Dataset}
+
+%(ADD THREE SUBSECTIONS TO THIS SECTION. ONE FOR EACH TYPE OF DATA: CAESAR, WIKTIONARY, WOOZWORLD)
+
+\section{Experimental Design}
+\begin{table}[]
+\centering
+\caption{Neural Network Models Accuracy and F-Score}
+\label{my-label}
+\begin{tabular}{|c|c|c|}
+\hline
+Model         & POS (Accuracy)  & NER (F-Score)       \\ \hline
+BI-LSTM  & 95.9     & 84.7                             \\ \hline
+BI-LSTM-CRF & \textbf{97.4} & \textbf{90.1}                             \\ \hline
+Feed-Forward    & 95.8          &   84.1                                         \\ \hline
+Feed-Forward-CRF & 97.3     & 86.4                          \\ \hline
+Mention2Vec & _    & 87.8                         \\ \hline
+BPE-Mention2Vec  &     &  _   \\ \hline   
+\end{tabular}
+\end{table}
+
+
+\section{Experimental results}
+
+
+\chapter{Conclusion}
+
+
+%   BACK MATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   References and appendices. Appendices come after the bibliography and
+%   should be in the order that they are referred to in the text.
+%
+%   If you include figures, etc. in an appendix, be sure to use
+%
+%       \caption[]{...}
+%
+%   to make sure they are not listed in the List of Figures.
+%
+
+%\backmatter%
+\cleardoublepage
+\phantomsection
+\addtoToC{Bibliography}
+%\bibliographystyle{apacite}
+\bibliographystyle{apalike}
+\bibliography{references}
+	
+
+%\begin{appendices} % optional
+%	\chapter{Code}
+%\end{appendices}
+\end{document}
