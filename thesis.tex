@@ -1,5 +1,5 @@
 \documentclass{sfuthesis}
-\title{Fast Neural Network Models for Sequence Tagging}
+\title{Fast and Accurate Neural Network Models for Sequence Tagging}
 \thesistype{Thesis}
 \author{Xinxin Kou}
 \previousdegrees{%
@@ -99,20 +99,9 @@ Thanks to all of my natural language processing lab mates who helped me during t
 \chapter{Introduction}
 
 
-\section{Background}
-Machine learning learns a model from observed data to enable it to make predictions on the unseen data. 
+\section{Sequence Tagging Task}
 
-%Cyberbullying, sexting, profanity and other forms of malicious chat messages become popular online. Users are facing an unhealthy online environment. The rule based filtering system are commonly used to filter out these malicious messages in order to prevent users from these unhealthy information. However, some malicious messages being corrupted by users can still get past the filtering system. There are several ways to detect and filter these corrupted malicious messages. More modern techniques use machine learning classifiers to identify malicious messages in order to filter them out. But, such methods are still prone to the problem that users can adapt their encryption methods of hiding their original intently since the classifier is static, while the users change their behavior. We assume that the original message is edited by a malicious user into a cipher text. We apply the unsupervised learning methods to automatically convert such messages back into their plain text. The plain text we deciphered is more likely being filtered out by the filtering system. Since we aim to decipher {\em any possible} way to encode the message, our method is immune to many (but not all) types of attempts to hide the message using new and intensive techniques.  For instance, let us assume that the offensive message is {\em you are a bunny} and the hidden message that tries to get past the filtering method is {\em ura B*n@n@ee } we can decode the original messages by learning the character mappings that lead to plausible message as determined by an English language model.  Due to the lack of malicious chat messages, we parse the Wiktionary dataset and get the English sentences with offensive or normal tags as the dataset. We simulate the way users encode the messages and then we use Expectation Maximization (~\citeauthor{Dempster:77} ~\citeyear{Dempster:77}) and beam search to decode the most likely original message. 
-
-%\section{Statistical Machine Translation}
-
-% Statistical Machine Translation (SMT) is generating translation based on the statistical model trained on the bilingual text corpora. As illustrated in Figure \ref{}, the general structure of machine translation requires a method for computing language model probabilities, a method for computing the translation model probabilities and a method for searching among possible target sentences with highest likelihood score. For the SMT, there are noisy channel model framework 
-
-% Decipherment has also been used in statistical machine translation. The state-of-art machine translation uses statistical model inferences from bilingual text corpora to generate translation. While bilingual text corpora or parallel corpora is limited in many language pairs and domains (~\citeauthor{dou2013dependency}, ~\citeyear{dou2013dependency})~\cite{dou2013dependency}, the decipherment approach is used to generate the parallel corpora
-
-% Since previous works people focus on the decipherment on ancient language or helping the statistical machine translation, we come up with a new problem that can also be solved by decipherment. It is the evasive or encrypted offensive text which unusually happens in chat messages.
-
-
+\section{Dataset}
 
 \section{Motivation}
 
@@ -125,24 +114,32 @@ Machine learning learns a model from observed data to enable it to make predicti
 \section{Overview}
 The thesis is organized as follows:
 
-In \textbf{Chapter 2}  
+In \textbf{Chapter 2}  we present variants of Feedforward Neural Network Models, explain the experiments design, and show the experiments results.
 
 In \textbf{Chapter 3} 
 
-In \textbf{Chapter 4} we explain the experiments and show the experimental results.
+In \textbf{Chapter 4} we present variants Bi-LSTM Network Models, explain the experiments design, and show the experiments results.
 
-In \textbf{Chapter 5} we summarize the experimental results of the previous chapter.
+In \textbf{Chapter 5} we present a multitask Model based on the Mention2Vec Model, explain the experiments design, and show the experiments results.
 
-\chapter{Feedforward Neural Network}
+In \textbf{Chapter 6} we summarize the experimental results of the previous chapter.
 
-\chapter{Decipherment}
+\chapter{Feedforward Neural Network Models}
+\section{Model Description}
+\section{Part-of-Speech Experiments and Results}
+\section{Named Entity Recognition Experiments and Results}
 
+\chapter{Bi-direction Long Short Term Memory Network Models}
+\section{Model Description}
+\section{Part-of-Speech Experiments and Results}
+\section{Named Entity Recognition Experiments and Results}
 
-\chapter{Experimental Results}
-\label{ch:Experiment}
-\section{Dataset}
+\chapter{Mention2Vec Model}
+\section{Model Description}
+\section{Part-of-Speech Experiments and Results}
+\section{Named Entity Recognition Experiments and Results}
 
-%(ADD THREE SUBSECTIONS TO THIS SECTION. ONE FOR EACH TYPE OF DATA: CAESAR, WIKTIONARY, WOOZWORLD)
+\chapter{Conclusion}
 
 \section{Experimental Design}
 \begin{table}[]
