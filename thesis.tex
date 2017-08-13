@@ -100,39 +100,52 @@ topic and providing his continuous support and valuable guidance throughout my g
 
 \chapter{Introduction}
 
+In this chapter, we first briefly describe the sequence tagging tasks and introduce the background and motivation of this thesis. Then, we summarize our major contributions and describe the structure of the thesis.
 
 \section{Sequence Tagging Task}
+
 \subsection{Part-of-Speech Tagging (POS)}
+Part-of-Speech Tagging (POS) assigns each word with a unique tag that indicates its syntactic role.
+
 \subsection{Named Entity Recognition (NER)}
-\section{Motivation}
 
-Bidirectional Long Short-Term Memory (BiLSTM) (~\citeauthor{Hochreiter97longshort-term}, ~\citeyear{Hochreiter97longshort-term}; ~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}) networks have obtained impressive results in many NLP tasks. BiLSTM networks are popular models for solving sequence tagging problems, since they can maintain information based on the past and future features in the input sequence. The state-of-the-art results on POS and NER are obtained by using the BiLSTM-CRF model with Character Embeddings (~\citeauthor{ling2015finding}~\citeyear{ling2015finding};~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}). Some work has shown that using feedforward neural network can achieve comparable results or better accuracy than some models using LSTMS in tasks such as POS tagging (~\citeauthor{schmid1994part}, ~\citeyear{schmid1994part}; ~\citeauthor{andor2016globally}, ~\citeyear{andor2016globally}). One approach is to employ a greedy transition system with a feedforward network to make independent classification decision on each word. However, the greedy system is limiting when there are strong correlations between output labels. NER is one of such tasks which have grammar constrains on the output label sequence. For example, the "I-PER" tag cannot follow the "B-LOC" tag in NER. In order to take into account the strong dependencies between output labels, a conditional random field layer (CRF) (~\citeauthor{lafferty2001conditional}, ~\~\citeyear{lafferty2001conditional}) can be added to model the output tag sequence jointly. Since the CRF model focuses on the sentence level, it takes more time in decoding the sequence. We are interested in the speed-accuracy trade-off in different models. Therefore, we re-implemented variants of feed-forward models and BiLSTM models in Tensorflow and systematically compare the performance of them on sequence tagging tasks.
+\section{Data}
+We performed the experiments on three sets of data: Penn Treebank, CoNLL2003, and OntoNotes. We also use the GLove pretrained word embeddings.
 
-Since tags in NER often consist of multiple tokens, most neural architectures for NER predict the boundary and the type of entities together using the the "IOB" label scheme. Mention2Vec (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}) is proposed to address the natural segment-level representation in NER by separating the NER task into boundary detection and type prediction. While Mention2Vec applies two BiLSTMs for each sub-task, we replace the the BiLSTMs for boundary detection with the feedforward network with CRF in order to accelerate the classification. This new model is denoted as Feedforward-Mention2Vec in this thesis.
+\textbf{Penn Treebank} We conduct the POS experiments on the English Penn TreeBank dataset(~\citeauthor{marcus1993building}, ~\citeyear{marcus1993building}), which contains 45 part-of-speech tags. We use sections 1-18 of the Treebank for training data, section 19-21 for tuning and section 22-24 for testing. 
 
-Inspired by the work using Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) to deal rare words in sentences(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we come up with a new model combining BPE and Feedforward-Mention2Vec for POS, which is denoted as BPE-Mention2Vec. We use BPE to segment the input words in the hope of capturing the orthographic evidence of the word without using spelling features (like prefixes and suffixes) or character embedding. After the word segmentation, POS becomes a NER-like task. Since the boundary in the output labels is known, we can use Feedforward-Mention2Vec for type prediction only.
+\textbf{CoNLL2003} We run NER experiments on the CoNLL2003 English dataset (~\citeauthor{tjong2003introduction}, ~\citeyear{tjong2003introduction})
+ which contains 4 types of named entities: locations (LOC), persons (PER), organizations (ORG), and miscellaneous (MISC). POS tags are available in this dataset, but they are not used as features in the experiments. Since a named entity tag can span several words, the NER tag sequences are converted using the IOB label scheme (Inside, Outside, Beginning): if the token is the beginning of a named entity tag, it is labeled as B-label; if the token is inside a named entity tag but not the first one, it is labeled as I-label; if the token is outside the named entity tag, it is labeled as O.
 
-\section{Datasets}
+
+\textbf{OntoNotes} We run both POS and NER experiments on the OntoNotes dataset (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}) which contains 45 part-of-speech tags and 18 types of named entities. We do not use the POS tags in this dataset as features for NER. The NER tag sequences are converted using the IOB label scheme.
+
+\textbf{GLoVE} It's been shown that using pretrained word embeddings leads to significant performance improvement on sequence tagging (~\citeauthor{collobert2011natural}, ~\citeyear{collobert2011natural}; ~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}). In the experiments of this thesis, we use the GloVe vector representations for words (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}), which has 40K vocabulary size and each word corresponds to a 100-dimensional embedding vector.
+
 Table \ref{table:my-dataset} shows the size of sentences, words, and tags for training, validation and test data respectively.
-\subsection{WSJ Penn Treebank}
-\subsection{CoNLL2003}
 \begin{table}[]
 \centering
-\caption{Number of sentences, words and labels in training, validation and test dataset}
+\caption{Number of sentences, words and labels in each training, validation and test dataset}
 \label{table:my-dataset}
 \begin{tabular}{|c|c|c|c|c|} \hline
       & Training  & Validation  & Test  & labels  \\ \hline
 Penn Treebank   &39831(950011) &1699(40068) &2415(56671) &45\\\hline
 CoNLL2003   &14987(204567) &3466(51578) &3684(46666) &9     \\\hline
- 
+OntoNotes   &_ &_ &_ &18     \\\hline
 \end{tabular}
 \end{table}
 
-\subsection{GLoVE}
+\section{Motivation}
 
-GloVe (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}) is pre-trained vector representations for words. Training of the model is performed on the Wikipedia data.
+Bidirectional Long Short-Term Memory (BiLSTM) (~\citeauthor{Hochreiter97longshort-term}, ~\citeyear{Hochreiter97longshort-term}; ~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}) networks have obtained impressive results in many NLP tasks. BiLSTM networks are popular models for solving sequence tagging problems, since they can maintain information based on the past and future features in the input sequence. The state-of-the-art results on POS and NER are obtained by using the BiLSTM-CRF model with Character Embeddings (~\citeauthor{ling2015finding}~\citeyear{ling2015finding}; ~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}). Some work has shown that using feedforward neural network can achieve comparable results or better accuracy than some models using LSTMS in tasks such as POS tagging (~\citeauthor{schmid1994part}, ~\citeyear{schmid1994part}; ~\citeauthor{andor2016globally}, ~\citeyear{andor2016globally}). One approach is to employ a greedy transition system with a feedforward network to make independent classification decision on each word. However, the greedy system is limiting when there are strong correlations between output labels. NER is one of such tasks which have grammar constrains on the output label sequence. For example, the "I-PER" tag cannot follow the "B-LOC" tag in NER. In order to take into account the strong dependencies between output labels, a conditional random field layer (CRF) (~\citeauthor{lafferty2001conditional}, ~\~\citeyear{lafferty2001conditional}) can be added to model the output tag sequence jointly. Since the CRF model focuses on the sentence level, it takes more time in decoding the sequence. We are interested in the speed-accuracy trade-off in different models. Therefore, we re-implemented variants of feed-forward models and BiLSTM models in Tensorflow and systematically compare the performance of them on sequence tagging tasks.
 
-%Due to the lack of malicious chat messages, we parse the Wiktionary dataset and get the English sentences with offensive or normal tags as the dataset. We simulate the way users encode the messages and then we use Expectation Maximization (~\citeauthor{Dempster:77} ~\citeyear{Dempster:77}) and beam search to decode the most likely original message. 
+Since the named entity tags in NER often span multiple tokens, most neural architectures for NER predict the boundary and the type of entities together using the the IOB label scheme. Mention2Vec (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}) is proposed to address the natural segment-level representation in NER by separating the NER task into boundary detection and type prediction. While Mention2Vec applies two BiLSTMs for each sub-task, we replace the the BiLSTMs for boundary detection with the feedforward network with CRF in order to accelerate the classification. This new model is denoted as Feedforward-Mention2Vec in this thesis.
+
+Inspired by the work using Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) to deal rare words in sentences(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we come up with a new model combining BPE and Feedforward-Mention2Vec for POS, which is denoted as BPE-Mention2Vec. We use BPE to segment the input words in the hope of capturing the orthographic evidence of the word without using spelling features (like prefixes and suffixes) or character embedding. After the word segmentation, POS becomes a NER-like task. Since the boundary in the output labels is known, we can use Feedforward-Mention2Vec for type prediction only.
+
+\section{Contribution}
+The two main contributions of this thesis are:
+we implement and compare different feedforward model lstm models; we come up with new models using feed-forword mention2vec;
 
 \section{Overview}
 The thesis is organized as follows:
