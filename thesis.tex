@@ -100,40 +100,76 @@ topic and providing his continuous support and valuable guidance throughout my g
 
 \chapter{Introduction}
 
-In this chapter, we first briefly describe the sequence tagging tasks and introduce the background and motivation of this thesis. Then, we summarize our major contributions and describe the structure of the thesis.
+In this chapter, we first describe the sequence tagging tasks and introduce the background and motivation of this thesis. Then, we summarize our major contributions and describe the structure of the thesis.
 
 \section{Sequence Tagging Task}
 
+In this section, we briefly introduce two sequence tagging tasks on which we will benchmark different neural network models in this thesis. The experimental data are summarized in Table \ref{table:my-dataset}, while performance using existing are reported in Table 2.
+
 \subsection{Part-of-Speech Tagging (POS)}
-Part-of-Speech Tagging (POS) assigns each word with a unique tag that indicates its syntactic role.
+Part-of-Speech Tagging (POS) assigns each word with a unique tag that indicates its syntactic role, such as noun, adverb, verb \dots as illustrated in Figure \ref{fig:pos-ex}. 
+
+Most POS systems are evaluated on the English Penn TreeBank data set(~\citeauthor{marcus1993building}, ~\citeyear{marcus1993building}), which contains 45 part-of-speech tags. Section 1-18 of the Treebank are used for training, section 19-21 are used for tuning, and section 22-24 are used for testing. A lot of existing models are linear statistical models: Hidden Markov Models(HMM) obtains 96.46\% per word accuracy (~\citeauthor{mccallum2000maximum}, ~\citeyear{mccallum2000maximum}); the averaged perception discriminative sequence model obtains 97.11\% per word accuracy (~\citeauthor{collins2002discriminative}, ~\citeyear{collins2002discriminative}. More recently, neural network models pushed the state-of-the-art up. The BI-LSTM-CRF model by \cite{huang2015bidirectional} reaches 97.55\% per word accuracy, and the compositional character-to-word LSTM model of \cite{ling2015finding} reaches 97.78\% per word accuracy. 
+
+In this thesis, we also run our POS experiments on the OntoNotes data set (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}).
+
+
 
 \subsection{Named Entity Recognition (NER)}
 
-\section{Data}
-We performed the experiments on three sets of data: Penn Treebank, CoNLL2003, and OntoNotes. We also use the GLove pretrained word embeddings.
+Named Entity Recognition (NER) is a sub-problem of
+information extraction which identifies expressions
+that refer to peoples, places, organizations and others. A popular convention is to use the "IOB" label scheme (Inside, Outside, Beginning): if the token is the beginning of a named entity tag, it is labeled as B-label; if the token is inside a named entity tag but not the first one, it is labeled as I-label; if the token is outside the named entity tag, it is labeled as O. An example of NER is shown in Figure \ref{fig:ner-ex}.
 
-\textbf{Penn Treebank} We conduct the POS experiments on the English Penn TreeBank dataset(~\citeauthor{marcus1993building}, ~\citeyear{marcus1993building}), which contains 45 part-of-speech tags. We use sections 1-18 of the Treebank for training data, section 19-21 for tuning and section 22-24 for testing. 
-
-\textbf{CoNLL2003} We run NER experiments on the CoNLL2003 English dataset (~\citeauthor{tjong2003introduction}, ~\citeyear{tjong2003introduction})
- which contains 4 types of named entities: locations (LOC), persons (PER), organizations (ORG), and miscellaneous (MISC). POS tags are available in this dataset, but they are not used as features in the experiments. Since a named entity tag can span several words, the NER tag sequences are converted using the IOB label scheme (Inside, Outside, Beginning): if the token is the beginning of a named entity tag, it is labeled as B-label; if the token is inside a named entity tag but not the first one, it is labeled as I-label; if the token is outside the named entity tag, it is labeled as O.
+The shared task of CoNLL2003 (~\citeauthor{tjong2003introduction}, ~\citeyear{tjong2003introduction}) of NER contains 4 types of named entities: locations (LOC), persons (PER), organizations (ORG), and miscellaneous (MISC).
+The best system presented at the NER CoNLL 2003 challenge by \cite{florian2003named} obtains 88.76 F1 score. The Bidirectional LSTM CRF model by \cite{huang2015bidirectional} reaches 88.83 F1 score. Both of them use a lot of external features along with a large gazetteer. \cite{lample2016neural} proposed two NER models with no external features or gazeteer: the first one makes structured prediction using Bidirectional LSTM and CRF, and the second one uses a Shift-Reduce framework with the Stack-LSTM. The first model achieves the state-of-the-art result while the second one preforms slightly worse. 
 
 
-\textbf{OntoNotes} We run both POS and NER experiments on the OntoNotes dataset (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}) which contains 45 part-of-speech tags and 18 types of named entities. We do not use the POS tags in this dataset as features for NER. The NER tag sequences are converted using the IOB label scheme.
+In this thesis, we also run our NER experiments on the OntoNotes data set which contains 18 types of named entities. 
 
-\textbf{GLoVE} It's been shown that using pretrained word embeddings leads to significant performance improvement on sequence tagging (~\citeauthor{collobert2011natural}, ~\citeyear{collobert2011natural}; ~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}). In the experiments of this thesis, we use the GloVe vector representations for words (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}), which has 40K vocabulary size and each word corresponds to a 100-dimensional embedding vector.
 
-Table \ref{table:my-dataset} shows the size of sentences, words, and tags for training, validation and test data respectively.
+%\textbf{GLoVE} It's been shown that using pretrained word embeddings leads to significant performance improvement on sequence tagging (~\citeauthor{collobert2011natural}, ~\citeyear{collobert2011natural}; ~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}). In the experiments of this thesis, we use the GloVe vector representations for words (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}), which has 40K vocabulary size and each word corresponds to a 100-dimensional embedding vector.
+
 \begin{table}[]
 \centering
-\caption{Number of sentences, words and labels in each training, validation and test dataset}
+\caption{Number of sentences, words and labels in each training, validation and test data set}
 \label{table:my-dataset}
 \begin{tabular}{|c|c|c|c|c|} \hline
       & Training  & Validation  & Test  & labels  \\ \hline
 Penn Treebank   &39831(950011) &1699(40068) &2415(56671) &45\\\hline
 CoNLL2003   &14987(204567) &3466(51578) &3684(46666) &9     \\\hline
-OntoNotes   &_ &_ &_ &18     \\\hline
+OntoNotes   & & & &18     \\\hline
 \end{tabular}
 \end{table}
+
+
+\begin{table}[]
+\centering
+\caption{Performance of different POS and NER systems. Performance is reported in per-word accuracy for POS, and F1 score for NER. }
+\label{table:my-performance}
+\begin{tabular}{cclcc}
+POS Systems       & Accuracy &  & NER Systems           & F1
+\\ \cline{1-2} \cline{4-5} 
+\text{\cite{mccallum2000maximum}} & 96.46\%                      &  & \text{\cite{florian2003named}}                 & 88.76                  \\
+\text{\cite{collins2002discriminative}}    & 97.11\%                      &  & \text{\cite{huang2015bidirectional}}           & 88.83                  \\
+\text{\cite{huang2015bidirectional}}       & 97.55\%                      &  & \text{\cite{lample2016neural}} with CRF        & 90.94                  \\
+\text{\cite{ling2015finding}}              & 97.78\%                      &  & \text{\cite{lample2016neural}} with Stack LSTM & 90.33                 
+\end{tabular}
+\end{table}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.4]{pos-ex.png}
+ \caption{An example of POS}
+  \label{fig:pos-ex}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{ner-ex.png}
+ \caption{An example of NER}
+  \label{fig:ner-ex}
+\end{figure}
 
 \section{Motivation}
 
@@ -145,18 +181,23 @@ Inspired by the work using Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, 
 
 \section{Contribution}
 The two main contributions of this thesis are:
-we implement and compare different feedforward model lstm models; we come up with new models using feed-forword mention2vec;
+
+\begin{enumerate}
+  \item We implement variants of feedforward models using Tensorflow and benchmark them with BiLSTM models. There is few work exploring the accuracy and speed trade-off of using different neural network models on sequence tagging tasks. We carefully design the experiments to show that the feedforward models produce comparable results while being significantly faster than the BiLSTM models.
+  \item We introduce two new models based on the Mention2Vec model: Feedforward-Mention2Vec for NER and BPE-Mention2Vec for POS. We also benchmark these two multitasking models with the feedforward models and the BiLSTM models in terms of accuracy and speed. While the original model is designed for NER using BiLSTMs, we use the feedforward network with CRF in our new models, and we also adapt the model for POS by combining BPE in the model.
+\end{enumerate}
+
 
 \section{Overview}
 The thesis is organized as follows:
 
-In \textbf{Chapter 2}  we present variants of feedforward neural network models, explain the experiments design, and show the experiments results.
+In \textbf{Chapter 2}  we present the feedforward network model with three different configurations: feedforward network with only word features; feedforward network with spelling feature and history features; feedforward network with CRF. We explain the training and decoding process using the feedforward models, demonstrate the experiment design, and benchmark the performance and decoding time of the POS and NER systems with different configuration.
 
-In \textbf{Chapter 3} we present variants Bidirectional LSTM Network Models (~\citeauthor{Hochreiter97longshort-term} ~\citeyear{Hochreiter97longshort-term}), explain the experiments design, and show the experiments results.
+In \textbf{Chapter 3} we present variants Bidirectional LSTM Network models: Bidirectional LSTM with only word features (BiLSTM), Bidirectional LSTM with character embeddings (BiLSTM-Char), and fully structured BiLSTM (Bidirectional LSTM with character embeddings and CRF) (BiLSTM-Char-CRF). We explain the training and decoding process using the BiLSTM models, demonstrate the experiment design, and benchmark the performance and decoding time of the POS and NER systems using different Bidirectional LSTM Network models.
 
-In \textbf{Chapter 4} we present two multitask model based on the Mention2Vec Model  (~\citeauthor{stratos2016mention2vec} ~\citeyear{stratos2016mention2vec}): one for NER and the other used along with Bype Pair Encoding (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) for POS.
+In \textbf{Chapter 4} we present two new multitask models based on the Mention2Vec Model: the Feedforward-Mention2Vec for NER and BPE-Mention2Vec for POS. We explain the architecture of these two models and bench mark them with the feedforward models and the BiLSTM models in terms of performance and speed.
 
-In \textbf{Chapter 5} we summarize the experimental results of the previous chapter.
+In \textbf{Chapter 5} we summarize and discuss the experimental results from the previous chapter.
 
 \chapter{Feedforward Neural Network Models}
 
