@@ -216,11 +216,15 @@ In the greedy sequence tagging system, we assume that the word to be labeled dep
 
 Figure \ref{fig:greedypos} illustrates the architecture of the POS tagging system using the Feedforward Neural Network with History (Feedforward-History) model. We describe the Feedforward-History model in detail here. Since the current word depends on its neighbors in the greedy sequence tagging system, we use a fixed size window around the current word to generate features. In order to generate features for the words at the beginning and at the end of the sentence, we add a special “PADDING” word $window size/2$ times at the beginning and the end. To generate dense word features, we represent each word in the input sentence as a $d$-dimensional embedding vector $e_{wi}$. Meanwhile, we have a full vocabulary embedding vector dictionary $E_{w}$. Given a word $w_{i}$, we look up its embedding vector in $E_{w}$. Other spelling features of a word might help predict the label of the word as well, such as upper and lower case features, prefix and suffix features. Each spelling feature of a word $w_{i}$ is associate with a $d$-dimensional embedding vector $e_{si}$ and a embedding vector dictionary $E_{s}$. Besides word features and spelling features, we incorporate the output label features in this model. Since the greedy sequence tagging system labels word by word in a sentence, we can only use the previous labels as input features for predicting the labels for the current word. The input layer is obtained by concatenating the word feature vectors, spelling feature vectors, and history label feature vectors. Generating features for sequence tagging are expensive: selecting useful features is an empirical process based trial and error, and computing features vectors needs to concatenate feature strings and search them in a huge lookup table. We try to use features as little as possible to cut the time of feature generation while keeping the model accurate. In the model implementation, we extract the word and spelling features on a window size of 8 centered on the current focus word. We extract the following spelling features of each word: whether start with a capital letter; whether has all capital letters; whether has a mix of letters and digits; whether has punctuation; letter prefixes and suffices of length 2 and 3. We also extract the history label features on the previous 4 predicted labels. In order to build a simple and fast network model, we only use one hidden layer in this model. The input layer is mapped to a hidden layer through a Relu activation function:
 
-$H=Relu\left(\left( W_{1}^{w}x^{w}+W_{1}^{s}x^{s}+W_{1}^{l}x^{l}\right)\right)$,
+\begin{equation}
+H=Relu\left(\left( W_{1}^{w}x^{w}+W_{1}^{s}x^{s}+W_{1}^{l}x^{l}\right)\right),
+\end{equation}
 
 where $x^{w}$ represents the word input features, $x^{s}$ represents the spelling input features, $x^{l}$ represents history label input features, $W_{1}$ is the weight parameter for the hidden layer. Label probability distribution is modeled by a softmax layer:
 
-$p=softmax\left(W_{2}H+b\right)$,
+\begin{equation}
+p=softmax\left(W_{2}H+b\right),
+\end{equation}
 
 where $W_{2}$ is the weight parameter for the softmax layer and b is the bias.
 
@@ -231,28 +235,26 @@ $X=\left( w_{1},w_{2},\ldots w_{n}\right)$,
 
 and a sequence predictions
 
-$Y=\left( l_{1},l_{2},\ldots l_{n}\right)$, 
+
+$Y=\left( l_{1},l_{2},\ldots l_{n}\right)$,
 
 $p\left( l_{i}|x_{i}\right)$ is the conditional probability over $l_{i}$.
-
-
-
-
 
 \subsection{Feedforward Neural Network with CRF}
 \label{Feedforward-CRF}
 Feedforward Network with CRF (Feedforward-CRF) shares the same architecture with Feedforward-History except using CRF on sentence level instead of making independent decisions for each word. Feedforward-History can perform well on some sequence tagging tasks in which output labels do not have strong correlations, such as POS. Some tasks have grammar constrains on the output labels so that the labels are dependent in each sentences, such as NER. While Feedforward-History fails to take into account the grammar constrains, Feedforward-CRF model the output decisions in a sentence jointly. We describe how to apply CRF to model the sequence in detail here. Since the first part of the architecture is the same with Feedforward-History, we use the same notations.
 
 For a sequence of output predictions:
+
 $Y=\left( y_{1},y_{2},\ldots y_{n}\right)$
 
 The score of the output sequence is:
-
-$S\left( X|Y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}P_{i}$
-
+\begin{equation}
+S\left( X|Y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}P_{i}
+\end{equation}
 where $T$ is a matrix of transition scores such that $T_{i,j}$ represents the score of a transition from the label $i$ to label $j$.
 
-During training, we score every possible output sequences, and minimize the negative log likelihood over the training sentences.
+During training, we score every possible output sequences, and minimize the negative log likelihood over the training sentences. With the transition matrix $T$, we can decode the tag sequences of the test data using dynamic programming.
 
 
 
@@ -272,9 +274,9 @@ In the POS experiments, we train the models using the Penn Treebank training dat
  
 We implement the models using the Tensorflow library, and use the GLoVE pre-trained word embedding where each word corresponds to a 100-dimensional embedding vector. We tuned the hyper-parameters for training. Specifically we use ADAM for stochastic optimization, set the learning rate to be 0.001, and the hidden layer to be 128. We have the batch implementation which processes multiple sentences at the same time, and we set the batch size to be 32 in the experiments. We run all the experiments in this thesis on a GeForce GTX 1080 GPU. 
 
-Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models. In POS, Feedforward-word is 1.39\% less accurate then Feedforward-history, and is 1.41\% less accurate than Feedforward-CRF. In NER, the F1 score of Feedforward-word is 2.42 lower than Feedforward-history, and 3.73 lower than the Feedforward-CRF. Since only using word features does not decrease the POS performance too much, we can conclude that greedy sequence tagging system with the feedforward model is robust with respect to spelling features on POS. The spelling features are more helpful in NER. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the sequence labels in NER.
+Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models. In POS, Feedforward-word is 1.39\% less accurate then Feedforward-history. In NER, the F1 score of Feedforward-word is 2.42 lower than Feedforward-history. Since only using word features does not decrease the POS performance too much, we can conclude that greedy sequence tagging system with the feedforward model is robust with respect to spelling features on POS. The spelling features are more helpful in NER. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the sequence labels in NER.
 
-It's obvious that Feedforward-word has the fastest decoding speed because it doesn't use any extra features.
+It's obvious that Feedforward-word has the fastest decoding speed because it doesn't use any extra features. Feedforward-crf is slower than the Feedforward-history since it takes into account every possible sequences.
 
 \begin{table}[]
 \centering
@@ -314,9 +316,9 @@ Feedforward-CRF    & 376(8827)     & 610(7738)     \\ \hline
 \chapter{Bidirectional Long Short Term Memory Network Models}
 \section{Model Description}
 
-Recurrent neural networks (RNNs) have produced impressive results on the tasks that operate on sequential data.
+Recurrent neural networks (RNNs) have produced impressive results on the tasks that operate on sequential data. Bidirectional LSTMs are RNNs with special cells LSTMS.
 
-\subsection{Bidirectional LSTM Networks}
+\subsection{Bidirectional LSTM Networks with CRF}
 
 Long Short-term Memory Networks (LSTMS) (~\citeauthor{hochreiter1997long}, ~\citeyear{hochreiter1997long}) is designed to learn long dependencies in a sequence. 
 
@@ -432,7 +434,7 @@ Table \ref{table:pos-mention2vec} compares the POS performance and decoding spee
 Model            & F1     & Speed(Sentences/sec)        \\ \hline
 Feedforward-CRF  & 87.85  & 610                     \\ \hline
 BiLSTM-Char-CRF & 90.11  & 394                     \\ \hline
-Mention2Vec      & 88.79  & 504                     \\ \hline
+Feedforward-Mention2Vec      & 88.79  & 504                     \\ \hline
 \end{tabular}
 \end{table}
 
@@ -445,7 +447,7 @@ Mention2Vec      & 88.79  & 504                     \\ \hline
 Model            & Accuracy     & Speed(sents/sec)        \\ \hline
 Feedforward-crf  & 97.30  & 376                     \\ \hline
 BILSTM-Char-CRF & 97.34  & 342                    \\ \hline
-Mention2Vec      & 96.04  & 68                    \\ \hline
+BPE-Mention2Vec      & 96.04  & 68                    \\ \hline
 \end{tabular}
 \end{table}
 
