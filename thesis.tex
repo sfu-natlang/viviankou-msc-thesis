@@ -204,8 +204,9 @@ In \textbf{Chapter 5} we summarize and discuss the experimental results from the
 
 \chapter{Feedforward Neural Network Models}
 
-\section{Network Architecture}
+In this chapter, we describe two feedforward network models: Feedforward-history and Feedforward-crf. Throught carefully designed experiments, we show the performance and decoding speed of different feedforward models.
 
+\section{Network Architecture}
 Inspired by the greedy parser system by ~\cite{chen2014fast}, we present a similar greedy transition system for sequence tagging in this section. The greedy parser system employs a basic arc-standard system (~\citeauthor{nivre2004deterministic}, ~\citeyear{nivre2004deterministic}), which consists of three types of transitions(LEFT-ARC, RIGHT-ARC, and SHIFT), a stack, and a buffer. While the greedy parser system has three types of actions, the sequence tagging system only has SHIFT action which predicts the tag of the current word in the buffer and shifts the word to the stack. 
 
 In the greedy sequence tagging system, we assume that the word to be labeled depends mainly on its neighbors instead of the whole sentence. There are two ways to make use of neighbor label information: the first one is to use the previous predicted labels as input features the model feeds into the feedforward network layer; the second one is to use CRF on sentence level output labels instead of individual labels. Two architectures using these two methods respectively are introduced in this section. The Feedforward Network with History model makes use of the first method to incorporate the history labels as features, and the Feedforward Network with CRF model adds a CRF layer on the output label sequence. These two architectures are similar with the window approach proposed in ~\cite{collobert2011natural}.
@@ -229,16 +230,20 @@ p=softmax\left(W_{2}H+b\right),
 where $W_{2}$ is the weight parameter for the softmax layer and b is the bias.
 
 The network is trained by minimized a negative log likelihood over the training data. The embedding vectors are trainable inputs for the network. We denote all trainable parameters as $\theta$.
+
 For an input sentence:
 
+\begin{center}
 $X=\left( w_{1},w_{2},\ldots w_{n}\right)$, 
+\end{center}
 
 and a sequence predictions
 
+\begin{center}
+$Y=\left( y_{1},y_{2},\ldots y_{n}\right)$,
+\end{center}
 
-$Y=\left( l_{1},l_{2},\ldots l_{n}\right)$,
-
-$p\left( l_{i}|x_{i}\right)$ is the conditional probability over $l_{i}$.
+$p\left( y_{i}|x_{i}\right)$ is the conditional probability over $y_{i}$.
 
 \subsection{Feedforward Neural Network with CRF}
 \label{Feedforward-CRF}
@@ -246,12 +251,16 @@ Feedforward Network with CRF (Feedforward-CRF) shares the same architecture with
 
 For a sequence of output predictions:
 
+\begin{center}
 $Y=\left( y_{1},y_{2},\ldots y_{n}\right)$
+\end{center}
 
 The score of the output sequence is:
+
 \begin{equation}
 S\left( X|Y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}P_{i}
 \end{equation}
+
 where $T$ is a matrix of transition scores such that $T_{i,j}$ represents the score of a transition from the label $i$ to label $j$.
 
 During training, we score every possible output sequences, and minimize the negative log likelihood over the training sentences. With the transition matrix $T$, we can decode the tag sequences of the test data using dynamic programming.
@@ -276,7 +285,7 @@ We implement the models using the Tensorflow library, and use the GLoVE pre-trai
 
 Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models in a bar chart. In POS, Feedforward-word is 1.39\% less accurate then Feedforward-history. In NER, the F1 score of Feedforward-word is 2.42 lower than Feedforward-history. Since only using word features does not decrease the POS performance too much, we can conclude that greedy sequence tagging system with the feedforward model is robust with respect to spelling features on POS. The spelling features are more helpful in NER. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the sequence labels in NER.
 
-It's obvious that Feedforward-word has the fastest decoding speed because it doesn't use any extra features. Feedforward-crf is slower than the Feedforward-history since it takes into account every possible sequences.
+It's obvious that Feedforward-word has the fastest decoding speed because it doesn't use any extra features. Feedforward-crf is slower than the Feedforward-history since the CRF model compute the score of every possible output sequences.
 
 \begin{table}[]
 \centering
