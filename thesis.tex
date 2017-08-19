@@ -274,7 +274,7 @@ In the POS experiments, we train the models using the Penn Treebank training dat
  
 We implement the models using the Tensorflow library, and use the GLoVE pre-trained word embedding where each word corresponds to a 100-dimensional embedding vector. We tuned the hyper-parameters for training. Specifically we use ADAM for stochastic optimization, set the learning rate to be 0.001, and the hidden layer to be 128. We have the batch implementation which processes multiple sentences at the same time, and we set the batch size to be 32 in the experiments. We run all the experiments in this thesis on a GeForce GTX 1080 GPU. 
 
-Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models. In POS, Feedforward-word is 1.39\% less accurate then Feedforward-history. In NER, the F1 score of Feedforward-word is 2.42 lower than Feedforward-history. Since only using word features does not decrease the POS performance too much, we can conclude that greedy sequence tagging system with the feedforward model is robust with respect to spelling features on POS. The spelling features are more helpful in NER. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the sequence labels in NER.
+Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models in a bar chart. In POS, Feedforward-word is 1.39\% less accurate then Feedforward-history. In NER, the F1 score of Feedforward-word is 2.42 lower than Feedforward-history. Since only using word features does not decrease the POS performance too much, we can conclude that greedy sequence tagging system with the feedforward model is robust with respect to spelling features on POS. The spelling features are more helpful in NER. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the sequence labels in NER.
 
 It's obvious that Feedforward-word has the fastest decoding speed because it doesn't use any extra features. Feedforward-crf is slower than the Feedforward-history since it takes into account every possible sequences.
 
@@ -314,23 +314,35 @@ Feedforward-CRF    & 376(8827)     & 610(7738)     \\ \hline
 
 
 \chapter{Bidirectional Long Short Term Memory Network Models}
+In this chapter, we first describe the fully structured Bidirectional LSTM network (BiLSTM-Char-CRF). Then, we show the performance and decoding speed of the BiLSTM with different configurations.
+
 \section{Model Description}
-
-Recurrent neural networks (RNNs) have produced impressive results on the tasks that operate on sequential data. Bidirectional LSTMs are RNNs with special cells LSTMS.
-
-\subsection{Bidirectional LSTM Networks with CRF}
-
-Long Short-term Memory Networks (LSTMS) (~\citeauthor{hochreiter1997long}, ~\citeyear{hochreiter1997long}) is designed to learn long dependencies in a sequence. 
-
-Bidirectional LSTM (~\citeauthor{graves2013hybrid}, ~\citeyear{graves2013hybrid}) can efficiently make use of the past word features and the future word features. Figure \ref{fig:bilstm} illustrates the architecture of the POS tagging system using the BiLSTM Model.
-
-\subsection{Character LSTM Embedding}
-Instead of using hand-engineered features listed in Section \ref{ff-subsection} (like the prefix and suffix of a word), we can use a model that constructs word representations from the characters in it (~\citeauthor{lample2016neural}~\citeyear{lample2016neural}). Learning character embedding has been found useful for capturing morphological evidence (~\citeauthor{ling2015finding}, ~\citeyear{ling2015finding}).
-
+Feedforward neural networks can not directly use the previous data and future data to predict the current output, which is a drawback of applying feedforward network models on sequence tagging. 
+Recurrent neural networks (RNNs) are networks with loops in them which allows data to persist. LSTMs are special RNNs with Long Short Term memory cells (~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}) illustrated in Figure \ref{fig:lstmcell}. However, RNNs is biased towards the most recent data in practice. The LSTM network is designed to address this issue: it learns long dependencies in a sequence with help of the structure of gates. The gates control how much of the input is given to the LSTM cell, and how much of the previous information to forget. 
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.6]{bilstm.png}
+  \includegraphics[scale=0.6]{lstmcell.png}
+ \caption{The architecture of a LSTM cell}
+  \label{fig:lstmcell}
+\end{figure}
+
+Given a sentence with n words, LSTM computes a forward representation $\overrightarrow {h_{i}}$ for word i. In general, computing a backward representation $\overleftarrow {h_{i}}$ would be useful for sequence tagging. Computing both forward and backward hidden embeddings can be achieved by Bidirectional LSTMs (BiLSTMs). Figure \ref{fig:bilstm} illustrates the architecture of the POS tagging system using the BiLSTM architecture. Again, a CRF layer can be added to take into account the output tag information on a sentence level.
+
+Instead of using hand-engineered features listed in Chapter 2 (like the prefix and suffix of a word), we can use a BiLSTM network to construct word representations from the characters in it (~\citeauthor{lample2016neural}~\citeyear{lample2016neural}). It's been shown that learning character embedding has been found useful for capturing morphological evidence (~\citeauthor{ling2015finding}, ~\citeyear{ling2015finding}). Figure \ref{fig:charlstm} describes the architecture of the using character embeddings and BiLSTM to generate word embeddings. The input to the character embedding BiLSTM is the letter sequence of a word. We define a character dictionary mapping each character to a d-dimensional vector representation. The English character dictionary contains uppercase and lowercase letters, numbers, and punctuation. We look up each $c_{i}$ of the input letter sequence from the dictionary and get the input vectors $x_{ci}$. Then, the input vectors $x_{ci}$ is fed into BiLSTM to generate forward and backward hidden embeddings. We concatenate the last forward hidden embedding and the last backward hidden embedding with the word embedding from looking up a word vector dictionary to obtain the final word embedding.
+
+We combine the Character Embedding architecture with BiLSTM-CRF by feeding the final concatenated word embeddings to BiLSTM-CRF. Then we get the BiLSTM-CRF-Char model for sequence tagging. The character embeddings and word embeddings are learned together during training.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{charlstm.png}
+ \caption{The word embedding derived from the character embeddings}
+  \label{fig:charlstm}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{bilstm.png}
  \caption{The architecture of the POS tagging system using the BiLSTM network model}
   \label{fig:bilstm}
 \end{figure}
@@ -338,9 +350,11 @@ Instead of using hand-engineered features listed in Section \ref{ff-subsection} 
  
 \section{Experiments and Results}
 
-We implement and compare the BiLSTM model with three configurations: the BiLSTM model with word features only (BiLSTM); the BiLSTM model with character embedding (BiLSTM-Char); the BiLSTM model with character embedding and a CRF layer(BiLSTM-Char-CRF).
+To evaluate the BiLSTM models, we run the model with three configurations on POS and NER: the BiLSTM model with word features only (BiLSTM); the BiLSTM model with character embedding (BiLSTM-Char); the BiLSTM model with character embedding and a CRF layer(BiLSTM-Char-CRF). We report the performance and decoding speed of the models. 
 
-Table \ref{table:lstm-table1} and Table \ref{table:lstm-table2} demonstrate our final result of the comparison between the three different models on the POS and NER tagging. Figure \ref{fig:lstm} illustrates the performance comparison between different Bi-LSTM Network Models.
+We implement the models using the Tensorflow library, and use the GLoVE pre-trained word embedding where each word corresponds to a 100-dimensional embedding vector. The hidden dimension for character BiLSTM is set to 25. Since dropout training (~\citeauthor{hinton2012improving}, ~\citeyear{hinton2012improving}) can improve the performance by encouraging the model to depend on both character embeddings and word embeddings, we apply a dropout mask to the embedding layer before BiLSTM, and we set the dropout rate to 0.5.
+
+Table \ref{table:lstm-table1} and Table \ref{table:lstm-table2} demonstrate our final result of the performance and decoding speed benchmark on the POS and NER. Figure \ref{fig:lstm} illustrates the performance comparison between different Bi-LSTM Network Models in a bar chart.
 
 \begin{table}[]
 \centering
