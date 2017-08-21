@@ -402,71 +402,67 @@ BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
 \end{figure}
 
 
-\chapter{Mention2Vec Models}
-In this chapter, we introduce two multitasking models based on Mention2Vec for the POS tagging system and the NER tagging system, and show their performance and decoding speed. 
+\chapter{Mention2Vec Model}
+
+In this chapter, we introduce two multitasking models for POS and NER respectively. The multitasking model are based on the Mention2Vec model. We conduct experiments using the multitasking models on POS and NER and show their performance and decoding speed. 
+
 \section{Model Description}
+
 \subsection{Feedforward-Mention2Vec for NER}
-Mention2Vec is a neural network model for NER, which uses BiLSTMs to predict boundaries and entity types separately (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}). In each training step, the model optimizes the boundary detection loss and type prediction loss jointly.
-We describe the Mention2Vec model for NER in detail here.
 
-We denote the vector concatenation operation as $\oplus$, the forward and backward character LSTM mapping as $\phi_{f}^{C}$ and $\phi_{b}^{C}$, the forward and backward character LSTM mapping as $\phi_{f}^{W}$ and $\phi_{b}^{W}$, the word embedding for $w_{i}$ as $e\left(w_{i}\right)$, the concatenation of the word embedding and the character embeddings of the word$i$ as $x_{i}$, and the hidden embedding for $w_{i}$ as $h_{i}$.
-
-The BiLSTM architecture for character embedding is the same as we described in Chapter 3. The vector representation for $w_{i}$ is:
-
-\begin{center}
-$x_{i} = \phi_{f}^{C}\left(w_{i}\right) \oplus \phi_{b}^{C}\left(w_{i}\right) \oplus e\left(w_{i}\right)$
-\end{center}
-
-Next, the hidden embedding of $w_{i}$ is computed:
-
-\begin{center}
-$h_{i} = \phi_{f}^{W}\left(x_{i}\right) \oplus \phi_{b}^{W}\left(x_{i}\right)$
-\end{center}
-
-\textbf{Boundary Detection} 
-After obtaining the hidden embeddings of the input words, Mention2Vec applies BiLSTM for boundary detection which is predicting I, O, B lables.
-It uses the same architecture in BiLSTM-Char-CRF except the output tags $y_{i}\in \left\{I, O, B\right\}$.
-
-The score of $y_{i}$ is $p_{y_{i}}$, and the score of an output sequence $\left(y_{1}, y_{2},\dots, y_{n}\right)$ is:
-
-\begin{center}
-$S\left(y\right) = \sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}p_{y_{i}}$
-\end{center}
-
-
-The boundary detection loss is:
-
-\begin{equation}
-  L_{1}\left( \theta ,\theta _{1}\right) =-\log \left( p\left( y|X\right) \right) 
-\end{equation}
-
-\textbf{Type Prediction}
-Given the boundary of a named entity, Mention2Vec predict the type (PER, LOC, $\dots$) using the word hidden embeddings and a BiLSTM. Figure \ref{fig:typelstm} describes the process of predicting the type for a word span (i to j) in a sequence. The model first looks up the hidden embeddings for the words from H. Then, a BiLSTM takes the hidden embeddings and produces word span vector representations. The word span vector representations are fed in to a MLP to get the type probabilities.
+Mention2Vec is a neural network model for NER, which uses BiLSTMs to predict boundaries and entity types separately (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}). We summarize the Mention2Vec model into three steps. The first step is using BiLSTM to generate hidden embeddings which is the same in the BiLSTM-Char-CRF model. Figure \ref{fig:mention2vec1} illustrates the first step of Mention2Vec in a NER example. We denote the input sentence as $W: \left\{w_{1}, w_{2}, \dots, w_{n}\right\}$, vector concatenation operation as $\oplus$, input embedding as $X: \left\{x_{1}, x_{2}, \dots, x_{n}\right\}$ which are the concatenations of the character embeddings and the word embeddings, the hidden embeddings as $H: \left\{h_{1}, h_{2}, \dots, h_{n}\right\}$
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.6]{typelstm.png}
- \caption{BiLSTM Network Models results}
-  \label{fig:typelstm}
+  \includegraphics[scale=0.6]{mention2vec1.pdf}
+ \caption{The first step of Mention2Vec for NER}
+  \label{fig:mention2vec1}
 \end{figure}
 
-The type prediction loss is:
+%In each training step, the model optimizes the boundary detection loss and type prediction loss jointly. We describe the Mention2Vec model for NER in detail here.
 
-\begin{equation}
-  L_{2}\left( \theta ,\theta _{2}\right) =-\sum _{l}\log P\left( r^{l}|hs^{\ldots }ht\right)
+The second step of Mention2Vec is boundary detection which is predicting $\left\{I, O, B\right\}$ labels for each word in NER. Mention2Vec takes the hidden embeddings produced in step 1, and feed them in to a feedforward network layer to get the output label probability distributions. Since the boundary labels has strong correlations, Mention2Vec uses CRF to capture the dependency and produce the output label sequence. Figure \ref{fig:mention2vec2} illustrates the second step of Mention2Vec. The output label probability distribution is denoted as $p_{i}$ for word $w_{i}$, and the gold boundary label sequence is denoted as $Y_{label}$. In each training step, The boundary detection loss is given by the negative log likelihood of the gold boundary label sequence, shown in \ref{eqn:loss1}
+
+\begin{equation}\label{eqn:loss1}
+  L_{1}\left( \theta ,\theta _{1}\right) =-\log \left( p\left( Y_{label}|h_{1}, h_{2} \dots h_{n}\right) \right) 
 \end{equation}
 
-\textbf{Joint Optimization}
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.6]{mention2vec2.pdf}
+ \caption{The second step of Mention2Vec for NER}
+  \label{fig:mention2vec2}
+\end{figure}
 
-The joint loss is:
-\begin{equation}
-  L\left( \theta \right) =L_{1}+L_{2}  
+The third step of Mention2Vec is type prediction which is finding the actual types for each entity in the sentence, given the hidden embeddings and the entity boundaries. The model first looks up the hidden embeddings for the word spans. Then, it feeds the word span hidden embeddings into an additional BiLSTM and obtains the corresponding vector representations for the word span $\mu$ by concatenating the forward and the backward final states of BiLSTM. A feedforward network, at the end, is used to map the word span vector representations $\mu$ to type probability distribution $r$. Figure \ref{fig:mention2vec3} illustrates the third step of Mention2Vec.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.6]{mention2vec3.pdf}
+ \caption{The third step of Mention2Vec for NER}
+  \label{fig:mention2vec3}
+\end{figure}
+
+The gold type label sequence of an input sentence is denoted$Y_{type}$. Assuming there are $l$ named entities in a sentence, and the start index and the end index of an entity is represented as $s$ and $e$, the type prediction loss is computed by \ref{eqn:loss2}:
+
+\begin{equation}\label{eqn:loss2}
+  L_{2}\left( \theta ,\theta _{2}\right) =-\sum _{l}\log P\left( r^{l}|h_{s}^{l}^{\ldots }h_{e}^{l}\right)
 \end{equation}
 
-\textbf{Feedforward-Mention2Vec}
-In order to further speed up the the tagging system as well as capture the correlation between boundary tags, we replace the BiLSTM layer used for boundary detection with a Feedforward-CRF layer described in Section \ref{Feedforward-CRF}.
+During training, the model uses the gold boundaries and types to compute the type prediction loss. In each training step, the boundary detection loss and the type prediction loss are minimized jointly. The training objective is to find the boundary sequence and type sequence that minimize the sum of $L_{1}$ and $L_{2}$.
+
+
+In order to further speed up the the tagging system as well as capture the correlation between boundary tags, we consider using different networks for boundary detection. Shown in Chapter 2 and Chapter 3, Feedforward-CRF produces relatively good performance on NER with faster speed than BiLSTM. We then replace BiLSTM in the first step of Mention2Vec with a Feedforward-CRF layer described in Section \ref{Feedforward-CRF}. We denote this new model for NER as Feedforward-Mention2Vec. Feedforward-Mention2Vec still has three steps, the second step and the third step are the same as the ones of Mention2Vec. The first step uses a feedforward network to produce the hidden embeddings, which is illustrated in Figure \ref{fig:mention2vec4}.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.6]{mention2vec4.pdf}
+ \caption{The first step of Feedforward-Mention2Vec for NER}
+  \label{fig:mention2vec4}
+\end{figure}
 
 \subsection{BPE-Mention2Vec for POS}
+
 Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) is a data compression technique, which is adapted for word segmentation to deal rare words in sentences(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}). In the POS tagging system, given a sentence, we use BPE to segment the words and convert the corresponding tags using the IOB scheme. Then we apply Mention2Vec on the segmented POS data. We combine the segmented words and the predicted tags at the end. Figure \ref{fig:bpe} shows an example of applying BPE on a sentence with POS tags. 
 
 \begin{figure}
