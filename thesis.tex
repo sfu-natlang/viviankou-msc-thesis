@@ -159,14 +159,14 @@ POS Systems       & Accuracy &  & NER Systems           & F1
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.4]{pos-ex.png}
+  \includegraphics[scale=0.5]{posex.pdf}
  \caption{An example of POS}
   \label{fig:pos-ex}
 \end{figure}
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{ner-ex.png}
+  \includegraphics[scale=0.5]{nerex.pdf}
  \caption{An example of NER}
   \label{fig:ner-ex}
 \end{figure}
@@ -462,25 +462,32 @@ In order to further speed up the the tagging system as well as capture the corre
 \end{figure}
 
 \subsection{BPE-Mention2Vec for POS}
+In POS, each word in the input sentence is assigned a unique tag. Since there is no tag chunk existing in POS, it's not necessary to use a multitasking model on POS. However, we come up a way to convert POS into a NER-like task through the help of Byte Pair Encoding. Inspired by the work using BPE to to deal with rare words in machine translation (~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we initially wanted to use BPE to capture morphological evidences of the words and replace the spelling features like prefix and suffix. BPE is a compression algorithm which replaces frequent pairs with an unused byte. \cite{sennrich2015neural} proposed a way to adapt BPE for word segmentation: using BPE to segment words into subword units of different length, and building a vocabulary dictionary using word frequency. For our POS tagging system, we learn BPE merge operations on the training data. To segment training data and test data, we first split each word in characters and them apply BPE to merge the characters into larger chunks. In order to restore the words, we use the IOB label scheme to label the subword units. Since there are subword units sharing the tag, POS becomes a task similar with NER. Figure \ref{fig:bpe} shows an example of using BPE to segment a sentence with POS tags. 
 
-Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) is a data compression technique, which is adapted for word segmentation to deal rare words in sentences(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}). In the POS tagging system, given a sentence, we use BPE to segment the words and convert the corresponding tags using the IOB scheme. Then we apply Mention2Vec on the segmented POS data. We combine the segmented words and the predicted tags at the end. Figure \ref{fig:bpe} shows an example of applying BPE on a sentence with POS tags. 
+In our proposed BPE-Mention2Vec model for POS, there are three main steps. In the first step, given a sentence, we use BPE to segment the words and convert the corresponding tags using the IOB scheme. After preprocessing, we have a NER-like task with known boundary of each entity span, so we can apply the same methods in Feedforward-Mention2Vec to predict the label type. In the second step, we use a feedforward network to produce the hidden embeddings of the input words. CRF is not used here because that the boundary labels are known. The third step of BPE-Mention2Vec uses a BiLSTM to predict the POS tags for each word span based on the hidden embeddings and the known boundaries. Figure \ref{fig:bpemention2vec} describes the process of using BPE-Mention2Vec to find POS tags for an example sentence . 
+We use BPE to preprocess the training data and test data, and we train the BPE-Mention2Vec model on segmented training data with tags in IOB label scheme. 
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.6]{bpe.png}
+  \includegraphics[scale=0.5]{bpe.png}
  \caption{An example of using BPE for word segmentation}
   \label{fig:bpe}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{bpemention2vec.pdf}
+ \caption{An example of using BPE-Mention2Vec to find POS tags}
+  \label{fig:bpemention2vec}
+\end{figure}
+
 \section{Experiments and Results}
 
-We implement the models using the Tensorflow library, and use the GLOVE pre-trained word embedding. We used the same set of hyper parameters and the same GPU used in the previous experiments. 
+We empirically evaluate the Mention2Vec model and the Feedforward-Mention2Vec model for NER, and the BPE-Mention2Vec model for POS. We implement these models in python using Tensorflow 1.0. The experiments in this section use the same set of hyper parameters from the previous experiments. 
 
-Table \ref{table:ner-mention2vec} compares the NER performance and decoding speed between the Feedforward-CRF, BilSTM-Char-CRF, and Mention2Vec model.
+In the NER experiments, we compare the Feedforward-Mention2Vec model with the original Mention2Vec model. We also use the BiLSTM-Char-CRF model as the baseline model since it achieves highest F1 score among the previous models we built and is recognized as the state-of-the-art model for NER. Table \ref{table:ner-mention2vec} demonstrates the NER performance and decoding speed of these three neural network models on CoNLL 2003 data set. The Mention2Vec model achieves 89.51 F1 score which is lower then the 90.11 F1 score of Bi-LSTM-CRF model, and it is slightly slower than BiLSTM-Char-CRF. The Feedforward-Mention2Vec model achieves 88.79 F1 Score compared to 89.51 of Mention2Vec and 90.11 of BiLSTM-Char-CRF, but it is 1.3 times faster than Mention2Vec and 1.2 times faster than BiLSTM-Char-CRF. The empirical results demonstrate that the Feedforward-Mention2Vec model performs competitively on the NER tagging task while being faster than original Mention2Vec model and the state-of-the-art model.
 
-Shown in the experiment results, the Mention2Vec model achieves better accuracy than the Feedforward-CRF model while being slightly slower, and it is less accurate than the BiLSTM-Char-CRF model while being 1.2 times faster. The experiment results demonstrate that the Mention2Vec model performs competitively on the NER tagging task.
-
-Table \ref{table:pos-mention2vec} compares the POS performance and decoding speed between the Feedforward-CRF, BilSTM-Char-CRF, and BPE-Mention2Vec Model. The model is trained on the training dataset, and the per word accuracy is obtained from the test dataset. The speed is measured by the average number of sentences decoded per second. Since the test time includes the word segmentation time and the combining time, the POS tagging system using BPE-Mention2Vec Model is significantly slower than the other two models. The BPE-Mention2Vec obtains less accurate result then the Feedforward-CRF model and the BiLSTM-Char-CRF model. 
+In the POS experiments, we compare the BPE-Mention2Vec model with the BiLSTM-Char-CRF model which is the state-of-the-art model for POS. Table \ref{table:pos-mention2vec} demonstrates the POS performance and decoding speed of BilSTM-Char-CRF, and BPE-Mention2Vec Model on Penn Treebank data set. The BPE-Mention2Vec obtains less accurate result then the BiLSTM-Char-CRF model. Since using word segmentation increases the number of words to be processed and introduces more preprocess time, BPE-Mention2Vec is slower than the BilSTM-Char-CRF. The empirical results conclude that BilSTM-Char-CRF is a better model than BPE-Mention2Vec for POS. 
 
 \begin{table}[]
 \centering
@@ -489,8 +496,8 @@ Table \ref{table:pos-mention2vec} compares the POS performance and decoding spee
 \begin{tabular}{|c|c|c|}
 \hline
 Model            & F1     & Speed(Sentences/sec)        \\ \hline
-Feedforward-CRF  & 87.85  & 610                     \\ \hline
 BiLSTM-Char-CRF & 90.11  & 394                     \\ \hline
+Mention2Vec  & 89.51  & 381                     \\ \hline
 Feedforward-Mention2Vec      & 88.79  & 504                     \\ \hline
 \end{tabular}
 \end{table}
@@ -502,9 +509,8 @@ Feedforward-Mention2Vec      & 88.79  & 504                     \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model            & Accuracy     & Speed(sents/sec)        \\ \hline
-Feedforward-crf  & 97.30  & 376                     \\ \hline
 BILSTM-Char-CRF & 97.34  & 342                    \\ \hline
-BPE-Mention2Vec      & 96.04  & 68                    \\ \hline
+BPE-Mention2Vec      & 96.04  & 167                    \\ \hline
 \end{tabular}
 \end{table}
 
@@ -550,7 +556,7 @@ BiLSTM             & 342(8012)     & 644(8158)       \\ \hline
 BiLSTM-Char        & 263(6193)  & 465(5899)             \\ \hline
 BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
 Feedforward-Mention2Vec         & _      & 504(6392)              \\ \hline
-BPE-Mention2Vec     & 67(1579)  &  _               \\ \hline   
+BPE-Mention2Vec     & 167(1579)  &  _               \\ \hline   
 \end{tabular}
 \end{table}
 
