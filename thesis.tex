@@ -1,5 +1,5 @@
 \documentclass{sfuthesis}
-\title{Speed and Accuracy in Neural Network Models for Sequence Tagging}
+\title{Speed and Accuracy of Neural Network Models on Sequence Tagging}
 \thesistype{Thesis}
 \author{Xinxin Kou}
 \previousdegrees{%
@@ -345,7 +345,7 @@ We can use dynamic program to compute the transition matrix and find the optimal
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{bilstmcrf.pdf}
+  \includegraphics[scale=0.6]{bilstmcrf.pdf}
  \caption{The architecture of the NER tagging system using the BiLSTM network model with CRF}
   \label{fig:bilstmcrf}
 \end{figure}
@@ -358,7 +358,7 @@ We combine the Character Embedding architecture with BiLSTM and CRF by using the
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{bilstmchar.pdf}
+  \includegraphics[scale=0.6]{bilstmchar.pdf}
  \caption{The word embedding derived from the character embeddings}
   \label{fig:charlstm}
 \end{figure}
@@ -382,7 +382,7 @@ Figure \ref{fig:lstmbar} illustrates the performance of BiLSTM, BiLSTM-Char, BiL
   \label{fig:lstmbar}
 \end{figure}
 
-Table \ref{table:lstm-table1} and Table \ref{table:lstm-table2} describe the final results of the performance and decoding speed of the BiLSTM models on the POS and NER. It is obvious that the more features the model has, the slower it would be. Adding a CRF layer will increase the performance but decrease the decoding time. Table \ref{table:lstm-ff} benchmarks the fully structured BiLSTM-Char-CRF model against Feedforward-History and Feedforward-CRF. 
+Table \ref{table:lstm-table1} and Table \ref{table:lstm-table2} describe the final results of the performance and decoding speed of the BiLSTM models on the POS and NER. It is obvious that the more features the model has, the slower it would be. Adding a CRF layer will increase the performance but decrease the decoding time. Table \ref{table:lstm-table3} benchmarks the fully structured BiLSTM-Char-CRF model against Feedforward-History and Feedforward-CRF. 
 
 \begin{table}[]
 \centering
@@ -413,7 +413,7 @@ BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
 \begin{table}[]
 \centering
 \caption{Comparison between BiLSTM-Char-CRF, Feedforward-History, Feedforward-CRF}
-\label{table:lstm-table2}
+\label{table:lstm-table3}
 \begin{tabular}{|c|c|c|}
 \hline
 Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
@@ -497,7 +497,7 @@ We use BPE to preprocess the training data and test data, and we train the BPE-M
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.5]{bpemention2vec.pdf}
+  \includegraphics[scale=0.6]{bpemention2vec.pdf}
  \caption{An example of using BPE-Mention2Vec to find POS tags}
   \label{fig:bpemention2vec}
 \end{figure}
@@ -539,9 +539,11 @@ BPE-Mention2Vec      & 96.04  & 167                    \\ \hline
 
 \chapter{Experiments and Discussion}
 
-In this Chapter, we benchmark the performance and decoding speed of all the network models in this thesis, and provide analysis over the results.
+In this Chapter, we put together the performance and decoding speed of all the network models on POS and NER, and provide analysis over the results.
 
-Table \ref{table:my-label1} and Table \ref{table:my-label2} show the experimental results of the sequence tagging systems using the neural network models presented in this thesis. Table \ref{table:my-label1} also shows the results from other systems including Syntaxnet (~\citeauthor{alberti2017syntaxnet}, ~\citeyear{alberti2017syntaxnet}) and NeuroNet (~\citeauthor{2017neuroner}, ~\citeyear{2017neuroner}), which can produce the state-of-the-art results on POS and NER respectively. Syntaxnet has a POS tagger using the feedforward neural network model with spelling features. NeuroNet provides an NER system using BiLSTM with character embedding and CRF. Our re-implementation of the fully structured models (Feedforward-history and BiLSTM-Char-CRF) obtains slightly lower results than the state-of-the-art results, but we emphasize that our goal is to benchmark different models in terms of performance and decoding speed.
+Table \ref{table:my-label1} records the performance of the neural network models on POS and NER. It also include the results from other systems including Syntaxnet (~\citeauthor{alberti2017syntaxnet}, ~\citeyear{alberti2017syntaxnet}) and NeuroNet (~\citeauthor{2017neuroner}, ~\citeyear{2017neuroner}), which can produce the state-of-the-art results on POS and NER respectively. Syntaxnet has a POS tagger using a similar model with the Feedforward-History model, and NeuroNet uses the fully structured BiLSTM model for NER. While our reimplementation obtains slightly lower accuracy score and F1 score than the state-of-art, we emphasize the main goal of this thesis is to compare different neural networks, and to present to new multitasking models for POS and NER respectively.
+
+Table \ref{table:my-label2} records the decoding speed of different neural network models on the test data. All experiments are ran on the same GPU. It's obvious that the less extra features in the same network the faster the decoding speed will be. In general, the greedy tagging system using feedforward models are faster then the system using BiLSTM models. Since CRF models the output labels on the sentence level and introduces a transition matrix, it slows down the decoding speed.
 
 \begin{table}[]
 \centering
@@ -577,15 +579,15 @@ BiLSTM             & 342(8012)     & 644(8158)       \\ \hline
 BiLSTM-Char        & 263(6193)  & 465(5899)             \\ \hline
 BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
 Feedforward-Mention2Vec         & _      & 504(6392)              \\ \hline
-BPE-Mention2Vec     & 167(1579)  &  _               \\ \hline   
+BPE-Mention2Vec     & 167(3663)  &  _               \\ \hline   
 \end{tabular}
 \end{table}
 
-Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed of POS systems using different neural networks. Among the neural network models for POS systems, BiLSTM-Char-CRF model achieves the best per word accuracy 97.34\%, and Feedforward-CRF model obtains the second best per word accuracy 97.30\%. Feedforward-word model achieves the fastest decoding speed: the POS greedy system using Feedforward-word model decodes 504 sentences per second. The line in Figure \ref{fig:pos} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-word model which is the fastest model. The models above the line are faster but performs slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, so that they are less ideal for POS. Feedforward-history model is the fastest model with competitive performance, and it is about 2 times faster than the fully structured BiLSTM model.
+Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural networks. Among the neural network models for POS systems, BiLSTM-Char-CRF model achieves the best per word accuracy 97.34\%, and Feedforward-CRF model obtains the second best per word accuracy 97.30\%. Feedforward-Word model achieves the fastest decoding speed: the POS greedy system using Feedforward-Word model decodes 504 sentences per second. The line in Figure \ref{fig:pos} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-Word model which is the fastest model. The models above the line are faster but performs slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, so that they are less ideal for POS. Feedforward-History model is the fastest model with competitive performance, and it is about 2 times faster than the fully structured BiLSTM model.
 
-Figure \ref{fig:ner} illustrates the trade-off between performance and speed of NER systems using different neural networks. BiLSTM-Char-CRF achieves the highest F1 Score 90.11, and Feedforward-Mention2Vec obtains the second best F1 Score 88.79. Feedforward-word model achieves the fastest decoding speed: the NER greedy system using the Feedforward-word model decodes 780 sentences per second. The line in Figure \ref{fig:ner} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-word model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and Feedforward-Mention2Vec. Models below the line are slower and less accurate, so that they are less ideal for NER. Feedforward-Mention2Vec model is the fastest model with competitive performance. Feedforward-Mention2Vec obtains 88.79 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
+Figure \ref{fig:ner} illustrates the trade-off between performance and speed in NER systems using different neural networks. BiLSTM-Char-CRF achieves the highest F1 Score 90.11, and Feedforward-Mention2Vec obtains the second best F1 Score 88.79. Feedforward-word model achieves the fastest decoding speed: the NER greedy system using the Feedforward-word model decodes 780 sentences per second. The line in Figure \ref{fig:ner} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-word model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and Feedforward-Mention2Vec. Models below the line are slower and less accurate, so that they are less ideal for NER. Feedforward-Mention2Vec model is the fastest model with competitive performance. Feedforward-Mention2Vec obtains 88.79 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
 
-As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward neural network models can achieve comparable performance and faster speed than the systems using recurrent models; the NER system using the Feedforward-Mention2Vec model performs competitively as well.
+As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward neural network models can achieve comparable performance and faster speed than the systems using recurrent models on POS; the Feedforward-Mention2Vec model performs competitively with the BiLSTM-Char-CRF (state-of-the-art) model on NER.
 
 \begin{figure}
   \begin{tikzpicture}
@@ -683,9 +685,9 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
   \label{fig:ner}
 \end{figure}
 
-\chapter{Conclusions}
+\chapter{Conclusion and Future Work}
 
-This thesis presents and compares different Neural Network models for sequence tagging. Our experiment result shows that simple Feedforward networks can achieve competitively results while being significantly faster than the recurrent BiLSTM models. Our experiments also demonstrate that the multitask Mention2Vec model performs well on the NER task.
+This thesis presents and compares different Neural Network models for sequence tagging. The empirical result shows that simple Feedforward networks can achieve competitively results while being significantly faster than the recurrent BiLSTM models on POS. The empirical result also demonstrates that the multitasking Feedforward-Mention2Vec model performs well on the NER task.
 
 
 %   BACK MATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
