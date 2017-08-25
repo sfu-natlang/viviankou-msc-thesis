@@ -136,7 +136,7 @@ In this thesis, we conduct the NER experiments on the CoNLL 2003 data set and on
       & Training  & Validation  & Test  & labels  \\ \hline
 Penn Treebank   &39831(950011) &1699(40068) &2415(56671) &45\\\hline
 CoNLL2003   &14987(204567) &3466(51578) &3684(46666) &9     \\\hline
-OntoNotes   & & & &18     \\\hline
+OntoNotes   &75187(1088503) &9479(147724) &9603(152728) &18     \\\hline
 \end{tabular}
 \end{table}
 
@@ -309,9 +309,9 @@ Feedforward-CRF     & 97.30          &   87.85     \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-Feedforward-word    & 504(11831)     & 780(9886)    \\ \hline
-Feedforward-history & 432(10137)     & 675(8562)     \\ \hline
-Feedforward-CRF    & 376(8827)     & 610(7738)     \\ \hline
+Feedforward-word    & 1319(30967)     & 2117(26819)    \\ \hline
+Feedforward-history & 829(19474)     & 1390(17609)     \\ \hline
+Feedforward-CRF    & 761(17877)     & 1374(17412)     \\ \hline
 \end{tabular}
 \end{table}
 
@@ -404,9 +404,9 @@ BiLSTM-Char-CRF & 97.34  & 90.11             \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-BiLSTM             & 342(8012)     & 644(8158)       \\ \hline
-BiLSTM-Char        & 263(6193)  & 465(5899)             \\ \hline
-BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
+BiLSTM             & 981(23036)     & 1637(20740)       \\ \hline
+BiLSTM-Char        & 596(13992)  & 889(11271)             \\ \hline
+BiLSTM-Char-CRF    & 383(9009)  & 795(10100)         \\ \hline
 \end{tabular}
 \end{table}
 
@@ -417,15 +417,15 @@ BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-Feedforward-History            & 342(8012)     & 644(8158)       \\ \hline
-Feedforward-CRF        & 263(6193)  & 465(5899)             \\ \hline
-BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
+Feedforward-History            & 829(19474)     & 1390(17609)       \\ \hline
+Feedforward-CRF        & 761(17877)  & 1374(17412)             \\ \hline
+BiLSTM-Char-CRF    & 383(9009)  & 795(10100)         \\ \hline
 \end{tabular}
 \end{table}
 
 \chapter{Mention2Vec Models}
 
-In this chapter, we introduce two multitasking models for POS and NER respectively. The multitasking model are based on the Mention2Vec model. We conduct experiments using the multitasking models on POS and NER and show their performance and decoding speed. 
+In this chapter, we introduce two multitasking models for POS and NER respectively. The multitasking model are based on the Mention2Vec model which is proposed for NER. We conduct experiments using the multitasking models on POS and NER and show their performance and decoding speed. 
 
 \section{Model Description}
 
@@ -517,9 +517,9 @@ In the POS experiments, we compare the BPE-Mention2Vec model with the BiLSTM-Cha
 \begin{tabular}{|c|c|c|}
 \hline
 Model            & F1     & Speed(Sentences/sec)        \\ \hline
-BiLSTM-Char-CRF & 90.11  & 394                     \\ \hline
-Mention2Vec  & 89.51  & 381                     \\ \hline
-Feedforward-Mention2Vec      & 88.79  & 504                     \\ \hline
+BiLSTM-Char-CRF & 90.11  & 795(10100)            \\ \hline
+Mention2Vec  & 89.51     & 923(11695)              \\ \hline
+Feedforward-Mention2Vec      & 88.79  &  1059(13445)                   \\ \hline
 \end{tabular}
 \end{table}
 
@@ -530,8 +530,8 @@ Feedforward-Mention2Vec      & 88.79  & 504                     \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model            & Accuracy     & Speed(sents/sec)        \\ \hline
-BILSTM-Char-CRF & 97.34  & 342                    \\ \hline
-BPE-Mention2Vec      & 96.04  & 167                    \\ \hline
+BILSTM-Char-CRF & 97.34  & 383(9009)                  \\ \hline
+BPE-Mention2Vec      & 96.04  & 209(4923)                   \\ \hline
 \end{tabular}
 \end{table}
 
@@ -560,7 +560,7 @@ Feedforward-CRF     & 97.30          &   87.85     \\ \hline
 BiLSTM  & 96.04     & 84.78                             \\ \hline
 BiLSTM-Char & 97.21 & 88.32             \\ \hline
 BiLSTM-Char-CRF & 97.34  & 90.11             \\ \hline
-Feedforward-Mention2Vec  & _    & 88.79                       \\ \hline
+Feedforward-Mention2Vec  & _    & 88.97                       \\ \hline
 BPE-Mention2Vec & 96.04     &  _   \\ \hline   
 \end{tabular}
 \end{table}
@@ -572,14 +572,14 @@ BPE-Mention2Vec & 96.04     &  _   \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-Feedforward-word    & 504(11831)     & 780(9886)    \\ \hline
-Feedforward-history & 432(10137)     & 675(8562)     \\ \hline
-Feedforward-CRF     & 376(8827)     & 610(7738)     \\ \hline
-BiLSTM             & 342(8012)     & 644(8158)       \\ \hline
-BiLSTM-Char        & 263(6193)  & 465(5899)             \\ \hline
-BiLSTM-Char-CRF    & 222(5233)  & 394(4996)         \\ \hline
-Feedforward-Mention2Vec         & _      & 504(6392)              \\ \hline
-BPE-Mention2Vec     & 167(3663)  &  _               \\ \hline   
+Feedforward-word    & 1319(30967)     & 2117(26819)    \\ \hline
+Feedforward-history & 829(19474)     & 1390(17609)     \\ \hline
+Feedforward-CRF     & 761(17877)     & 1374(17412)     \\ \hline
+BiLSTM             &981(23036)     & 1637(20740)       \\ \hline
+BiLSTM-Char        & 596(13992)  & 889(11271)           \\ \hline
+BiLSTM-Char-CRF    & 383(9009)  & 795(10100)         \\ \hline
+Feedforward-Mention2Vec         & _      & 1059(13445)              \\ \hline
+BPE-Mention2Vec     & 209(4923)  &  _               \\ \hline   
 \end{tabular}
 \end{table}
 
@@ -610,18 +610,18 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    504   95.89   Feedforward-word 
-    432   97.28   Feedforward-history 
-    376   97.30   Feedforward-CRF 
-    342   96.01   BiLSTM 
-    263   97.21   BiLSTM-Char
-    222   97.34   BiLSTM-Char-CRF
-    68    96.04   BPE-Mention2Vec
+    1319  95.89   Feedforward-word 
+    829   97.28   Feedforward-history 
+    761   97.30   Feedforward-CRF 
+    981   96.01   BiLSTM 
+    596   97.21   BiLSTM-Char
+    383   97.34   BiLSTM-Char-CRF
+    209   96.04   BPE-Mention2Vec
     };
     \addplot+ [color=black,mark=*]table {
     x     y      label
-    504   95.89   Feedforward-word  
-    222   97.34   BiLSTM-Char-CRF
+    1319   95.89   Feedforward-word  
+    383   97.34   BiLSTM-Char-CRF
     
     };
 	\addlegendentry{Feedforward-word}
@@ -658,18 +658,18 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    780   84.12   Feedforward-word 
-    675   86.54   Feedforward-history 
-    610   87.85   Feedforward-CRF 
-    644   84.78   BiLSTM 
-    465   88.32   BiLSTM-Char
-    394   90.11   BiLSTM-Char-CRF
-    504   88.79   Feedforward-Mention2Vec
+    2117   84.12   Feedforward-word 
+    1390   86.54   Feedforward-history 
+    1374   87.85   Feedforward-CRF 
+    1637   84.78   BiLSTM 
+    889   88.32   BiLSTM-Char
+    795   90.11   BiLSTM-Char-CRF
+    1059   88.97   Feedforward-Mention2Vec
 	};
 	\addplot+ [color=black,mark=*]table {
     x     y      label
-    780   84.12   Feedforward-word 
-    394   90.11   BiLSTM-Char-CRF
+    2117   84.12   Feedforward-word 
+    797   90.11   BiLSTM-Char-CRF
     
     };
 	\addlegendentry{Feedforward-word}
