@@ -52,10 +52,15 @@
 \usepackage{multirow}
 \usepackage{underscore}
 \usepackage{pgfplots}
-\pgfplotsset{width=10cm,compat=1.15}
+\pgfplotsset{width=9cm,compat=1.15}
 
 \newcommand{\quotes}[1]{\textrm{``#1''}}
-
+\newcommand{\ffa}{Feedforward-History}
+\newcommand{\ffb}{Feedforward-CRF}
+\newcommand{\bia}{BiLSTM-Char}
+\newcommand{\bib}{BiLSTM-Char-CRF}
+\newcommand{\ma}{Feedforward-Mention2Vec}
+\newcommand{\mb}{BPE-Mention2Vec}
 %   FRONTMATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   Title page, committee page, copyright declaration, abstract,
@@ -68,7 +73,7 @@
 \maketitle{}
 
 \begin{abstract}
-Sequence Tagging including part of speech tagging and named entity recognition is an important task in NLP. The recurrent neural network models such as the Bidirectional LSTM models have produced impressive results on sequence tagging. In this work, we first present simple and fast greedy sequence tagging system using variant feedforward neural network models. Then, we benchmark sequence tagging systems using variant Bidirectional LSTM models against the feedforward network models. Besides comparing the feedforward and the Bidirectional LSTM models, we propose two new multitask models based on the Mention2Vec model: Feedforward-Mention2Vec for Named Entity Recognition and BPE-Mention2Vec for Part-of-Speech Tagging. Feedforward-Mention2Vec predicts the named entity boundaries first and then predicts the labels for each named entity boundary. BPE-Mention2Vec uses the Byte Pair Encoding algorithm to segment words first and then predicts the Part-of-Speech tags for the subword spans. We carefully design the experiments to demonstrate the speed and accuracy trade-off in different models. The empirical results reveal that the greedy sequence tagging system using a feedforward network can achieve comparable accuracy and faster speed than the system using recurrent models on Part-of-Speech tagging, and the multitasking model for Named Entity Recognition is competitive with the fully structured BiLSTM model while being more scalable in the number of named entity types.
+Sequence Tagging including part of speech tagging and named entity recognition is an important task in NLP. The recurrent neural network models such as the Bidirectional LSTM models have produced impressive results on sequence tagging. In this work, we first present simple and fast greedy sequence tagging systems using variant feedforward neural network models. Then, we benchmark sequence tagging systems using variant Bidirectional LSTM models against the feedforward network models. Besides comparing the feedforward and the Bidirectional LSTM models, we propose two new multitasking models based on the Mention2Vec model: \ma{} for Named Entity Recognition and \mb{} for Part-of-Speech Tagging. \ma{} predicts the named entity boundaries first and then predicts the types for the named entity spans. \mb{} uses the Byte Pair Encoding algorithm to segment words in the sequence first and then predicts the Part-of-Speech tags for the subword spans. We carefully design the experiments to demonstrate the speed and accuracy trade-off in different models. The empirical results reveal that the greedy sequence tagging systems with feedforward networks can achieve comparable accuracy and faster speed than the systems using recurrent models on Part-of-Speech tagging, and the multitasking model (\ma) is competitive with the fully structured BiLSTM model on the Named Entity Recognition task while being more scalable in the number of named entity types.
 
 \end{abstract}
 
@@ -105,9 +110,9 @@ In this chapter, we first describe the sequence tagging tasks and introduce the 
 \section{Sequence Tagging Task}
 
 \subsection{Part-of-Speech Tagging (POS)}
-Part-of-Speech Tagging (POS) assigns each word with a unique tag that indicates its syntactic role, such as noun, adverb, verb \dots as illustrated in Figure \ref{fig:pos-ex}. 
+Part-of-Speech Tagging (POS) is a basic sequence tagging task, which assigns each word with a unique tag that indicates its syntactic role, such as noun, adverb, verb \dots Figure \ref{fig:pos-ex} illustrates a typical POS task. 
 
-Most POS systems are evaluated on the English Penn TreeBank data set(~\citeauthor{marcus1993building}, ~\citeyear{marcus1993building}), which contains 45 part-of-speech tags. The standard split uses section 1-18 of the Treebank for training, section 19-21 for tuning, and section 22-24 for testing (~\citeauthor{toutanova2003feature}, ~\citeyear{toutanova2003feature}). The experimental data are summarized in Table \ref{table:my-dataset}. A lot of existing models are linear statistical models: Hidden Markov Models(HMM) obtains 96.46\% per word accuracy (~\citeauthor{mccallum2000maximum}, ~\citeyear{mccallum2000maximum}); the averaged perception discriminative model obtains 97.11\% per word accuracy (~\citeauthor{collins2002discriminative}, ~\citeyear{collins2002discriminative}). More recently, neural network models help to improve the state-of-the-art scores. The BI-LSTM-CRF model by \cite{huang2015bidirectional} reaches 97.55\% per word accuracy, and the compositional character-to-word LSTM model of \cite{ling2015finding} reaches 97.78\% per word accuracy. The performance of existing models are reported in Table \ref{table:my-performance}.
+Most POS systems are evaluated on the English Penn TreeBank data set(~\citeauthor{marcus1993building}, ~\citeyear{marcus1993building}), which contains 45 part-of-speech tags. The standard split uses section 1-18 of the Treebank for training, section 19-21 for tuning, and section 22-24 for testing (~\citeauthor{toutanova2003feature}, ~\citeyear{toutanova2003feature}). The experimental data are summarized in Table \ref{table:my-dataset}. A lot of existing models are linear models, such as Hidden Markov Model(HMM) which obtains 96.46\% per word accuracy (~\citeauthor{mccallum2000maximum}, ~\citeyear{mccallum2000maximum}); and the averaged perception discriminative model which obtains 97.11\% per word accuracy (~\citeauthor{collins2002discriminative}, ~\citeyear{collins2002discriminative}). More recently, neural network models are proposed to improve the state-of-the-art scores. The Bidirectional LSTM network model proposed by \cite{huang2015bidirectional} reaches 97.55\% per word accuracy. \cite{ling2015finding} presents the compositional character-to-word LSTM model which reaches the state-of-the-art performance on POS: 97.78\% per word accuracy. The performance of existing POS models is reported in Table \ref{table:my-performance}.
 
 %In this thesis, we conduct the POS experiments on the English Penn TreeBank data set and the OntoNotes data set (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}).
 
@@ -115,22 +120,17 @@ Most POS systems are evaluated on the English Penn TreeBank data set(~\citeautho
 
 \subsection{Named Entity Recognition (NER)}
 
-Named Entity Recognition (NER) is a sub-problem of
-information extraction which identifies expressions
-that refer to named entities, such as peoples, places, organizations and others. The main difference between NER and POS is that each named entity label can span multiple words while each part-of-speech tag is only for one word. A popular convention of the named entity labelling is to use the "IOB" label scheme (Inside, Outside, Beginning): if the word is the beginning of a named entity label, it is marked as B-label; if the word is inside a named entity tag but not the first one, it is marked as I-label; if the token is outside the named entity, it is labeled as O. An example of NER is shown in Figure \ref{fig:ner-ex}.
+Named Entity Recognition (NER) is a more complex sequence tagging task than POS, which identifies expressions
+that refer to named entities, such as peoples, places, organizations and others. The main difference between NER and POS is that each named entity label can span multiple words while each part-of-speech tag is only for one word. A popular convention of the named entity labelling is to use the "IOB" label scheme (Inside, Outside, Beginning): if the word is the beginning of a named entity label, it is marked as B-label; if the word is inside a named entity tag but not the first one, it is marked as I-label; if the token is outside the named entity, it is labeled as O. An example of NER is shown in Figure \ref{fig:ner-ex}. There are different number of named entity types in different NER tasks, . For example, the shared task of CoNLL 2003 (~\citeauthor{tjong2003introduction}, ~\citeyear{tjong2003introduction}) contains 4 types of named entities: locations (LOC), persons (PER), organizations (ORG), and miscellaneous (MISC); the OntoNotes English data set (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}) contains 18 types of named entities: ORDINAL, LOC, PRODUCT, NORP, WORK\_OF\_ART, LANGUAGE, MONEY, TIME, PERCENT, PERSON, FAC, CARDINAL, GPE, DATE, ORG, LAW, EVENT, QUANTITY.
 
-The shared task of CoNLL2003 (~\citeauthor{tjong2003introduction}, ~\citeyear{tjong2003introduction}) of NER contains 4 types of named entities: locations (LOC), persons (PER), organizations (ORG), and miscellaneous (MISC).
-The best system presented at the NER CoNLL 2003 challenge by \cite{florian2003named} obtains 88.76 F1 score. The Bidirectional LSTM CRF model by \cite{huang2015bidirectional} reaches 88.83 F1 score. Both of these models use a lot of external features along with a large gazetteer. \cite{lample2016neural} proposed two NER models with no external features or $gazeteer^{\ast}$: the first one makes structured prediction using Bidirectional LSTM, character embeddings and CRF; and the second one uses a Shift-Reduce framework with Stack-LSTM. The first model achieves the state-of-the-art result while the second one preforms slightly worse. Since CoNLL 2003 has limiting training data, most of the existing model using pretrained word embeddings. \cite{lample2016neural} uses the pretrained word embeddings from GloVe (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}), which has 40K vocabulary size.
-
-
-In this thesis, we conduct the NER experiments on the CoNLL 2003 data set and on the OntoNotes English data set (~\citeauthor{hovy2006ontonotes}, ~\citeyear{hovy2006ontonotes}). OntoNotes is a larger and more richly annotated data set which contains 18 types of named entities. 
+Most NER models are evaluated on CoNLL 2003 data set and are measured by the F1 score. Since CoNLL 2003 has limiting training data, most of the existing model using pretrained word embeddings along with the CoNLL 2003 data. \cite{lample2016neural} uses the pretrained word embeddings from GloVe (~\citeauthor{pennington2014glove}, ~\citeyear{pennington2014glove}), which has 40K vocabulary size. The best system presented at the NER CoNLL 2003 challenge by \cite{florian2003named} obtains 88.76 F1 score. The Bidirectional LSTM network model by \cite{huang2015bidirectional} reaches 88.83 F1 score. Both of these two models use a lot of external features along with a large gazetteer. \cite{lample2016neural} proposed two NER models with no external features or a gazetteer: the first one makes structured prediction uses a Bidirectional LSTM, Character embeddings (~\citeauthor{ling2015finding}~\citeyear{ling2015finding}) and Conditional Random Field (CRF) (~\citeauthor{lafferty2001conditional}~\citeyear{lafferty2001conditional}); and the second one uses a Shift-Reduce framework with Stack-LSTM (~\citeauthor{dyer2015transition}, ~\citeyear{dyer2015transition}). The first model achieves the state-of-the-art F1 score, while the second one performs slightly worse. The performance of existing NER models is reported in Table \ref{table:my-performance}.
 
 
 %\textbf{GLoVE} It's been shown that using pretrained word embeddings leads to significant performance improvement on sequence tagging (~\citeauthor{collobert2011natural}, ~\citeyear{collobert2011natural}; ~\citeauthor{lample2016neural}, ~\citeyear{lample2016neural}).
 
 \begin{table}[]
 \centering
-\caption{Number of sentences(words) and labels in each training, validation and test section of different data sets}
+\caption{Number of Sentences(words) and Labels in Each Training, Validation and Test Section of Different Data Sets}
 \label{table:my-dataset}
 \begin{tabular}{|c|c|c|c|c|} \hline
       & Training  & Validation  & Test  & labels  \\ \hline
@@ -143,7 +143,7 @@ OntoNotes   &75187(1088503) &9479(147724) &9603(152728) &18     \\\hline
 
 \begin{table}[]
 \centering
-\caption{Performance of different POS and NER systems. Performance is reported in per-word accuracy for POS, and F1 score for NER. }
+\caption{Performance of Different POS and NER Systems}
 \label{table:my-performance}
 \begin{tabular}{cclcc}
 POS Systems       & Accuracy &  & NER Systems           & F1
@@ -171,23 +171,22 @@ POS Systems       & Accuracy &  & NER Systems           & F1
 
 \section{Motivation}
 
-Bidirectional Long Short-Term Memory (BiLSTM) (~\citeauthor{Hochreiter97longshort-term}, ~\citeyear{Hochreiter97longshort-term}; ~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}) networks have obtained impressive results in many NLP tasks. BiLSTM networks are popular models in solving sequence tagging problems for the reason that they can maintain information from the past and future data in the input sequence. Based on the existing work, the state-of-the-art results on POS and NER can be obtained by using the BiLSTM model with Character Embedding (~\citeauthor{ling2015finding}~\citeyear{ling2015finding}) and Conditional Random Field (CRF) (~\citeauthor{lafferty2001conditional}~\citeyear{lafferty2001conditional}). Some work has also shown that using feedforward neural network can achieve comparable results or better accuracy than models using BiLSTMS in tasks such as POS and Dependency Parsing (~\citeauthor{andor2016globally}, ~\citeyear{andor2016globally}). One approach used in this thesis is to employ a greedy transition system with a feedforward network to make independent classification decision on each word. However, the greedy system is limiting when there are strong correlations between output labels. NER is one of such tasks which have grammar constrains on the output label sequence. For example, the "I-PER" tag cannot follow the "B-LOC" tag in NER. In order to take into account the strong dependencies among output labels, a conditional random field layer (CRF) (~\citeauthor{lafferty2001conditional}, ~\citeyear{lafferty2001conditional}) is added to model the output label sequence jointly. Since the CRF-based models focus on the sentence level and compute the score of every possible sequence, they take more time in training and decoding. We are interested in the decoding speed and model accuracy trade-off in different neural network models. Therefore, we reimplement variants of feedforward models and BiLSTM models using Tensorflow (~\citeauthor{abadi2016tensorflow}, ~\citeyear{abadi2016tensorflow}) and systematically compare the performance and decoding speed of them on sequence tagging tasks.
+Bidirectional Long Short Term Memory (BiLSTM) (~\citeauthor{Hochreiter97longshort-term}, ~\citeyear{Hochreiter97longshort-term}; ~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}) networks have obtained impressive results in many NLP tasks. BiLSTM networks are popular models in solving sequence tagging problems for the reason that they can maintain information of the past and future data in the input sequence. Based on the existing work (the POS system by \cite{ling2015finding} and the NER system by \cite{lample2016neural}), the state-of-the-art results on POS and NER can be obtained by using a BiLSTM network with Character Embeddings and Conditional Random Field (CRF). Some work has also shown that using feedforward neural networks can achieve comparable or better accuracy than recurrent models in tasks such as POS and Dependency Parsing (~\citeauthor{andor2016globally}, ~\citeyear{andor2016globally}). One approach presented in this thesis is to employ a greedy transition system with a feedforward network to make independent classification decision on each word. However, the greedy system is limiting when there are strong correlations between output labels. NER is one of such tasks which have grammar constrains on the output label sequence. For example, the "I-PER" tag cannot follow the "B-LOC" tag in NER. In order to take into account the strong dependencies among output labels, a CRF layer is used to model the output label sequence jointly. Since the CRF-based models focus on the sentence level and compute the score of every possible sequence, they take more time in training and decoding. Since we are interested in the decoding speed and performance trade-off in different neural network models, we re-implement variants of feedforward models and BiLSTM models using Tensorflow (~\citeauthor{abadi2016tensorflow}, ~\citeyear{abadi2016tensorflow}) and systematically compare the performance and decoding speed of them on sequence tagging tasks, such as POS and NER.
 
-Since the named entity labels in NER often span multiple tokens, most neural architectures for NER predict the boundary and the type of entities together using the the IOB label scheme. Mention2Vec (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}) is proposed to address the natural segment-level representation in NER by separating the NER task into boundary detection (I, O, B) and type prediction (PER, LOC, etc.). While Mention2Vec employs two BiLSTMs for each sub-task, we replace the the BiLSTMs for boundary detection with a feedforward network with CRF in order to accelerate the classification and capture the dependencies of boundary labels. The intuition for using feedforward network is to accelerate the decoding speed since it is generally faster than the recurrent networks. This new model is denoted as Feedforward-Mention2Vec in this thesis.
+Since the named entity labels in NER often span multiple tokens, most neural architectures for NER predict the boundary and the type of entities together using the the "IOB" label scheme. Mention2Vec (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}) is proposed to address the natural segment-level representation in NER by separating the NER task into boundary detection (I, O, B) and type prediction (PER, LOC, etc.). While Mention2Vec employs two BiLSTMs for each sub-task, we replace the BiLSTM layer for boundary detection with a feedforward network in order to obtain a simpler model and accelerate the decoding process. This new model is denoted as Feedforward-Mention2Vec in this thesis.
 
-Inspired by the work using Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) to deal with rare words in sentences(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we come up with a new model combining BPE and Mention2Vec for POS, which is denoted as BPE-Mention2Vec. We use BPE to segment the input words in the hope of capturing the orthographic evidence of the words without using spelling features (like prefixes and suffixes) or character embeddings. After we segment the input words, POS becomes a NER-like task. Then we can use Mention2Vec to solve the rest of the problem. Since the boundaries of the output tags are known in POS, we only need to use a BiLSTM layer for type prediction only the same way used in Mention2Vec.
+Inspired by the work using Byte Pair Encoding (BPE) (~\citeauthor{gage1994new}, ~\citeyear{gage1994new}) to deal with rare words in sentences for machine tranlation(~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we come up with a new model combining BPE and Mention2Vec for POS, which is denoted as BPE-Mention2Vec in this thesis. We use BPE to segment the input words in the hope of capturing the orthographic evidence of the words without using spelling features (like prefixes and suffixes) or Character Embeddings. After we segment the input words, POS becomes a NER-like task. Then, we can use Mention2Vec to solve the rest of the problem. Since the boundaries of the output tags are known in POS, we only need to use a BiLSTM network for type prediction in \mb.
 
 \section{Contribution}
 The three main contributions of this thesis are:
 
 \begin{enumerate}
 
-\item We implement a greedy tagging system with two feedforward network architectures. The first architecture takes word features in context, spelling features, and history tag features as input. The second architecture uses word features in context and CRF to model the output sequences. There are few work measuring the decoding time using feedforward networks on sequence tagging. We conduct the experiments on NER and POS, and then record the performance and decoding speed on Penn Treebank data and CoNLL 2003 data. To test the robustness of the feedforward network, we also conduct the experiments using a feedforward network with only word features and use it as the baseline. We compare different feedforward models and provide analysis on the results. 
+\item We implement two greedy tagging systems with two different feedforward network architectures, \ffa{} and \ffb. \ffa{} takes word features in context, spelling features, and history tag features as input. \ffb uses word features in context and CRF to model the output sequences jointly. There are few work measuring the decoding time using feedforward networks on sequence tagging. We conduct the experiments on NER and POS, and then record the performance and decoding speed on Penn Treebank data for POS and CoNLL 2003 data for NER. To test the robustness of the feedforward network, we also conduct the experiments using a feedforward network with only word features, which also serves as the baseline. We compare different feedforward models and provide analysis on the results. 
 
-\item In addition the greedy tagging system with feedforward networks, we build a tagging system using the fully structured Bidirectional LSTM (BiLSTM) model, which makes use of character embedding and CRF. There is few work examining how the configurations of Bidirectional LSTM model affect the decoding speed, such as if the model is using character embedding or if the model is using CRF. We conduct the experiments to compare the performance and decoding time of different configurations on POS and NER. We also benchmark the BiLSTM results against the result achieved by feedforward network models.
+\item In addition to the greedy tagging systems with different feedforward networks, we build a tagging system using the fully structured BiLSTM model, which makes use of Character Embeddings and CRF. There is few work examining how the configurations of Bidirectional LSTM model affect the decoding speed, such as if the model is using Character Embeddings or if the model is using CRF. We conduct the experiments to compare the performance and decoding time of different configurations on POS and NER. We also benchmark the BiLSTM models against the feedforward models.
 
-\item We introduce two new neural architectures based on the Mention2Vec model: Feedforward-Mention2Vec for NER and BPE-Mention2Vec for POS. The original Mention2Vec model is designed for NER using BiLSTMs to predict named entity boundaries and types separately. We proposed the Feedforward-Mention2Vec model for NER, in which we use the feedforward network with CRF to predict the named entity boundaries instead of Bidirectional LSTM. We also adapt the Mention2Vec model for POS by combining Byte Pair Encoding (BPE). BPE is used to segment the input words in our model, and it turns POS into a NER-like task. We denote this new model as BPE-Mention2Vec. In the BPE-Mention2Vec model, we first use a feedforward network to compute the hidden embeddings of the input segmented words. Since the boundaries of subword units are known, the model does not need to predict the boundaries. It takes the hidden embeddings, subword boundaries, and a Bidirectional LSTM network to predict the actual POS tags. We benchmark these two multitasking models against the feedforward models and the Bidirectional LSTM models on POS and NER. Our experiments reveal that the Feedforward-Mention2Vec model performs better than the feedforward network models, and it achieves competitive score with the Bidirectional LSTM models. Since different NER tasks have different number of named entity types, the decoding time of models using CRF grows quadratically in
-the number of types. In Mention2Vec and Feedforward-Mention2Vec, we only apply CRF on boundary labels (I, O, B), the decoding time grows linearly instead of quadratically in the number of types. As the number of NER tags increases, such as in the OntoNotes data set, Feedforward-Mention2Vec decodes much faster than the fully structured Bidirectional LSTM model.
+\item Last but not least, we introduce two new neural architectures based on the Mention2Vec model: Feedforward-Mention2Vec for NER and BPE-Mention2Vec for POS. The original Mention2Vec model is designed for NER using BiLSTMs to detect named entity boundaries and predict the corresponding types separately. We proposed the Feedforward-Mention2Vec model for NER, in which we use a feedforward network with CRF to predict the named entity boundaries instead of using a BiLSTM.  We denote this new model for NER as \ma. We also adapt the Mention2Vec model for POS by combining Byte Pair Encoding (BPE). BPE is used to segment the input words in our model, and it turns POS into a NER-like task. We denote this new model for POS as \mb. In the BPE-Mention2Vec model, we use a feedforward network to compute the hidden embeddings of the input segmented words. Since the boundaries of subword units are known, the model does not need to predict the boundaries. It takes the hidden embeddings, subword boundaries, and a BiLSTM network to predict the actual POS tags. We benchmark these two multitasking models against the feedforward models and the BiLSTM models on POS and NER. Our experiments reveal that the Feedforward-Mention2Vec model performs better than the feedforward network models, and it achieves competitive score with the Bidirectional LSTM models. Since different NER tasks have different number of named entity types, the decoding time of models using CRF grows quadratically in the number of types. In Mention2Vec and Feedforward-Mention2Vec, we only apply CRF on boundary labels (I, O, B), so the decoding time grows linearly in the number of types. To show the time difference on different NER tasks, we conduct the NER experiments on CoNLL 2003 data set which contains 4 different named entity types and on OntoNotes English data set which contains 18 different named entity types.
 
 \end{enumerate}
 
@@ -195,363 +194,35 @@ the number of types. In Mention2Vec and Feedforward-Mention2Vec, we only apply C
 \section{Overview}
 The thesis is organized as follows:
 
-In \textbf{Chapter 2}  we present different feedforward network models: feedforward network with only word features (denoted as the Feedforward model); feedforward network with spelling feature and history features (denoted as the Feedforward-History model); and feedforward network with Conditional Random Field (denoted as the Feedforward-CRF model). We explain the training and decoding process using the feedforward models, demonstrate the experiment design, and compare the performance and decoding time of different feedforward models.
+In \textbf{Chapter 2}  we present three different feedforward network models: feedforward network with only word features (denoted as the Feedforward model); feedforward network with spelling feature and history features (denoted as the \ffa{} model); and feedforward network with CRF (denoted as the \ffb{} model). We explain the training and decoding process of the greedy systems with the feedforward models, demonstrate the experiment design, and compare the performance and decoding time between different feedforward models.
 
-In \textbf{Chapter 3} we present the Bidirectional LSTM Network model with variant configurations: Bidirectional LSTM with only word features (BiLSTM), Bidirectional LSTM with character embeddings (BiLSTM-Char), and Bidirectional LSTM with character embeddings and CRF (BiLSTM-Char-CRF). We explain the training and decoding process using the BiLSTM models, demonstrate the experiment design, and benchmark the performance and decoding time of the different Bidirectional LSTM Network models against the feedforward models .
+In \textbf{Chapter 3} we present the sequence tagging system using a BiLSTM network, Character Embeddings and CRF, denoted as the BiLSTM-Char-CRF model. We explain the training and decoding process using the BiLSTM-Char-CRF model, and conduct experiments using three different configurations: the BiLSTM model with word feature only, the BiLSTM model with Character Embeddings, and the fully structured BiLSTM model (BiLSTM-Char-CRF).
 
-In \textbf{Chapter 4} we present two new new multitask models based on the Mention2Vec Model: the Feedforward-Mention2Vec for NER and BPE-Mention2Vec for POS. We explain the architecture of these two models and benchmark them with the feedforward models and the BiLSTM models in terms of performance and speed.
+In \textbf{Chapter 4} we present two new new multitasking models based on the Mention2Vec Model: the Feedforward-Mention2Vec model for NER and BPE-Mention2Vec model for POS. We explain the architecture of these two models and benchmark them against the feedforward models and the BiLSTM models in terms of performance and speed.
 
 In \textbf{Chapter 5} we summarize and discuss the empirical results from the previous chapters. We also analyze the trade-off between performance and speed in different neural network models.
 
+In \textbf{Chapter 5} we conclude this thesis and describe related future work.
 
-\chapter{Feedforward Neural Network Models}
 
-In this chapter, we describe two feedforward network models: Feedforward-History and Feedforward-CRF. Then, we show the performance and decoding speed of different feedforward models on POS and NER. 
+\input{tex/feedforward}
 
-\section{Network Architecture}
+\input{tex/bilstm}
 
-\subsection{Feedforward Neural Network with History}
-
-Inspired by the greedy parser system by ~\cite{chen2014fast}, we present a similar greedy transition system for sequence tagging in this section. The greedy parser system employs a basic arc-standard system (~\citeauthor{nivre2004deterministic}, ~\citeyear{nivre2004deterministic}), which consists of three types of transitions(LEFT-ARC, RIGHT-ARC, and SHIFT), a stack, and a buffer. While the greedy parser system has three types of actions, the sequence tagging system only need SHIFT action which predicts the tag of the current word in the buffer and shifts the word to the stack. 
-
-In the greedy tagging system, we use a feedforward network to make decision on individual words, and assume that the word to be labeled depends mainly on its neighbors instead of the whole sentence. Besides word features, the system also takes into account the lexical composition of the words (spelling features), and the previous tagging decisions (history features). Thereby, we represent this architecture as the Feedforward-History model. The way Feedforward-History incorporates word features is similar with the window approach proposed in ~\cite{collobert2011natural}.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{greedypos.png}
- \caption{The architecture of the greedy tagging system using the Feedforward-History model.}
-  \label{fig:greedypos}
-\end{figure}
-
-Figure \ref{fig:greedypos} illustrates process of how the greedy tagging system using the Feedforward-History model decodes a POS example. Since the current word depends on its neighbors in the greedy sequence tagging system, we use a fixed size window around the current word to generate features. In order to generate features for the words at the beginning and at the end of the sentence, we add special padding word at the beginning and the end. To generate dense word features, we convert each word in the input sentence to a $d$-dimensional vector representation $e_{w_{i}}$. Meanwhile, we have a full vocabulary embedding vector dictionary $E_{w}$. Given a word $w_{i}$, we look up its embedding vector $e_{w_{i}}$ in $E_{w}$. According to \cite{ratnaparkhi1996maximum}, spelling features of a word can help predict the label of the word as well, such as upper and lower case features, prefix and suffix features. Each spelling feature of a word $w_{i}$ is also associate with an embedding vector $e_{s_{i}}$ and can be looked up from a embedding vector dictionary $E_{s}$. Besides word features and spelling features, we incorporate the output label features in this model. Since the greedy sequence tagging system makes decision word by word in a sentence, we can only use the previous labels as input features (history features) for predicting the label for the current word. Each history feature is represented as $e_{l_{i}}$ and can be looked up from a label dictionary is $E_{l}$.
-
-The input layer $X=\left( x_{1},x_{2},\ldots x_{n}\right)$ to the feedforward network is obtained by concatenating the word feature vectors, spelling feature vectors, and history label feature vectors. In general, generating a lot of hand-engineered features for sequence tagging are expensive: selecting useful features is an empirical process based on trials and errors, and computing features vectors requires searching feature strings in huge dictionaries and concatenating them together. We try to use features as little as possible to cut the time of feature generation while keeping the model accurate. In the model implementation, we extract the word and spelling features on a window size of eight centered on the current focus word. We extract the following spelling features of each word: whether start with a capital letter; whether has all capital letters; whether has a mix of letters and digits; whether has punctuation; letter prefixes and suffices of length two and three. We also extract the history label features on the previous four predicted labels. 
-
-The input layer is the concatenation of all feature vectors of the focus word, and the the output layer is a probability distribution over labels. In order to build a simple and fast network model, we only use one hidden layer in this model. The input unit $x_{i}$ is mapped to a hidden unit $h_{i}$ through the rectifier activation function (ReLU):
-
-\begin{equation}
-ReLU\left(x\right) = \ln\left[1+\exp\left(x\right)\right]
-\end{equation}
-
-\begin{equation}
-h_{i}=ReLU\left( W_{1}^{w}x_{i}^{w}+W_{1}^{s}x_{i}^{s}+W_{1}^{l}x_{i}^{l}+b_{1}\right),
-\end{equation}
-
-where $x^{w}$ represents the word input features, $x^{s}$ represents the spelling input features, $x^{l}$ represents history label input features, $W_{1}$ is the weight parameters for the hidden layer, and $b_{1}$ is the bias of in the hidden layer. The output of the network is a probability distribution over labels, and its dimension is the size of the possible labels. Label probability distribution is modeled by a softmax layer:
-
-\begin{equation}
-p_{i}=softmax\left(W_{2}h_{i}+b_{2}\right),
-\end{equation}
-
-where $W_{2}$ is the weight parameter in the softmax layer and $b_{2}$ is the bias in the softmax layer.
-
-The network is trained by minimizing a negative log likelihood over the training data. The embedding vectors are trained together with the weight vectors and bias in the network. We denote all trainable parameters as $\theta$. Given a sequence predictions, $Y=\left( y_{1},y_{2},\ldots y_{n}\right)$,
-the score of the output sequence is the sum of the probability of each decision $y_{i}$: 
-
-\begin{equation}
-S\left( Y\right) = \sum _{i}^{n}p_{i},
-\end{equation}
-
-and the loss function is:
-
-\begin{equation}
-L\left(\theta\right) = -log\left(\sum _{i}^{n}p_{i}\right),
-\end{equation}
-
-
-\subsection{Feedforward Neural Network with CRF}
-\label{Feedforward-CRF}
-There are two ways to make use of the output label information: the first one is to use the previous predicted labels as input features to be fed into the feedforward network layer, as in Feedforward-History; the second one is to use CRF on sentence level output labels instead of individual labels as in the following model. Feedforward Network with CRF (Feedforward-CRF) shares the same architecture with Feedforward-History except using CRF to model the output sequence after computing label probability distribution for each individual word. Feedforward-History can perform well on some sequence tagging tasks in which output labels do not have strong correlations, such as POS. Some tasks have grammar constrains on the output labels so that the labels depend on their neighbors, such as NER. While Feedforward-History fails to take into account the grammar constrains on output labels, Feedforward-CRF can make final decisions on the sentence level. Since the first part of the architecture is the same with Feedforward-History, we use skip this part. We describe how to apply CRF to model the sequence in detail here.
-
-Given a sequence of output predictions $y=\left( y_{1},y_{2},\ldots y_{n}\right)$,
-The score of the output sequence is:
-
-\begin{equation}
-S\left( y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}p_{i}\left(y_{i}\right)
-\end{equation}
-
-where $T$ is a matrix of transition scores such that $T_{i,j}$ represents the score of a transition from the label $i$ to label $j$, $p_{i}\left(y_{i}\right)$ is the probability of $y_{i}$ being the label of word $i$.
-
-During training, we score every possible output sequences, and use a softmax layer to generate the probability distribution of output sequences, shown in Equation \ref{eqn:softmax}. Then, we minimize the negative log likelihood over the training sentences. During sequence tagging, we can decode the tag sequences of the test data using dynamic programming.
-
-\begin{equation}\label{eqn:softmax}
-P\left( y\right) = softmax(S\left( y\right))
-\end{equation}
-
-
-\section{Experiments and Results}
-To evaluate the feedforward models, we run our models (Feedforward-history, Feedforward-CRF) on POS and NER, and we compare their performance and decoding speed. The performance of POS is measured by the per word accuracy, and the performance of NER is measured by the F1 score. The speed is measured by the average number of words decoded per second. We also want to show the robustness of the greedy system with the feedforward network model, so we run experiments using the feedforward model with only word features, denoted as Feedforward-Word in this thesis. 
-
-In the POS experiments, we train the models using the Penn Treebank training data and development data. Then, we decode the Penn Treebank test data with trained models and record the per word accuracy and decoding time. In the NER experiments, we train the models uisng the Conll2003 training data and development data. Then we decode the test data with the trained models, and record the F1 score and decoding time. The details of the data sets are shown in Table \ref{table:my-dataset}.
-
- 
-We implement the models using the Tensorflow library, and use the GLoVE pre-trained word embedding where each word corresponds to a 100-dimensional embedding vector. We tuned the hyper-parameters for training. Specifically we use Adam (~\citeauthor{kingma2014adam}, ~\citeyear{kingma2014adam}) for stochastic optimization, set the learning rate to be 0.001, and the hidden layer to be 128. We have the batch implementation which processes multiple sentences at the same time, and we set the batch size to be 32 in the experiments. We run all the experiments in this thesis on a GeForce GTX 1080 GPU. 
-
-Table \ref{table:ff-table1} and Table \ref{table:ff-tabel2} demonstrate our final benchmark result of three feedforward models on POS and NER. Figure \ref{fig:ff} illustrates the performance of the three models in a bar chart. In POS, Feedforward-Word is 1.39\% less accurate then Feedforward-History. In NER, the F1 score of Feedforward-Word is 2.42 lower than Feedforward-history. Since only using word features does not decrease the POS performance dramatically, we can conclude that our greedy tagging system using a feedforward network does not heavily rely on spelling features. The spelling features are more helpful in NER then in POS. In both POS and NER, Feedforward-CRF has better performance than Feedforward-history, but it improve the performance more on NER because of the dependencies between the output labels in NER. Feedforward-crf is slower than the Feedforward-history since the CRF model compute the score of every possible output sequences.
-
-\begin{table}[]
-\centering
-\caption{Feedforward Neural Network Models Accuracy and F-Score Comparison}
-\label{table:ff-table1}
-\begin{tabular}{|c|c|c|}
-\hline
-Model         & POS (Accuracy)  & NER (F-Score)       \\ \hline
-Feedforward-word    & 95.89          &   84.12     \\ \hline
-Feedforward-history & 97.28     & 86.54        \\ \hline
-Feedforward-CRF     & 97.30          &   87.85     \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
-\caption{Feedforward Neural Network Models Speed Comparison}
-\label{table:ff-tabel2}
-\begin{tabular}{|c|c|c|}
-\hline
-Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-Feedforward-word    & 1319(30967)     & 2117(26819)    \\ \hline
-Feedforward-history & 829(19474)     & 1390(17609)     \\ \hline
-Feedforward-CRF    & 761(17877)     & 1374(17412)     \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{ffbar.png}
- \caption{Performance comparison between feedforward models on POS and NER}
-  \label{fig:ff}
-\end{figure}
-
-
-
-\chapter{Bidirectional Long Short Term Memory Network Models}
-In this chapter, we first describe the Bidirectional Long Short Term Memory network (BiLSTM) and character embeddings of words. Then, we show the performance and decoding speed of the sequence tagging system with different BiLSTM configurations.
-
-\section{Model Description}
-\subsection{Bidirectional Bidirectional Long Short Term Memory}
-
-One major disadvantage of feedforward neural networks is that the model cannot keep the past and future data of a sequence in the network when predicting the current output. Recurrent neural networks (RNNs) (~\citeauthor{mikolov2010recurrent}, ~\citeyear{mikolov2010recurrent}) can keep the data to persist by using memory cells with loops in them. However, RNNs is biased towards the most recent data in practice. Long Short Term Memory Networks (LSTMs),special RNNs with Long Short Term memory cells  (~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}), are designed to combat the bias problem. LSTMs learn long dependencies in a sequence with help of the structure of gates (~\citeauthor{graves2005framewise}, ~\citeyear{graves2005framewise}). The gates control how much of the input is given to the next LSTM cell, and how much of the previous information to forget.
-
-Given a sentence with $n$ words each of which is represented as a dense vector $x_i$, a LSTM makes use of $x_{1:n}$ to compute a forward representation $\overrightarrow {h_{i}}$ for the $i$th word. In general, computing a backward representation $\overleftarrow {h_{i}}$ would be useful for sequence tagging. Bidirectional LSTMs (BiLSTMs) is an extension to LSTMs which take into account both the past data and the future data in a sequence. A BiLSTM generates both $\overrightarrow {h_{i}}$ and $\overleftarrow {h_{i}}$ for the $i$th word in the sequence. The hidden embedding $h_{i}$ is the concatenation of $\overrightarrow {h_{i}}$ and $\overleftarrow {h_{i}}$. The BiLSTM mapping is defined as $BiLSTM_{\theta}$:
-$h_{i} = BiLSTM_{\theta}\left(x_{1:n}, i\right)$ where $\theta$ represents trainable parameters in BiLSTM.
-
- We can combine BiLSTM with CRF to make use of sentence level tag information. As in the Feedforward-CRF model, we introduce a transition matrix $T$ to keep the transition score from $y_{i}$ to $y_{i+1}$. Given an output sequence $Y$, the score of the output sequence is given by:
-
-\begin{equation}
-S\left( X|Y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}P_{i}
-\end{equation}
-
-We can use dynamic program to compute the transition matrix and find the optimal output tag sequence. Figure \ref{fig:bilstmcrf} illustrates the BiLSTM model with CRF on a NER example.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{bilstmcrf.pdf}
- \caption{The architecture of the NER tagging system using the BiLSTM network model with CRF}
-  \label{fig:bilstmcrf}
-\end{figure}
-
-\subsection{Character Embedding}
-
-Instead of using hand-engineered features listed in Chapter 2 (like the prefix and suffix of a word), we can use a BiLSTM network to construct word representations from the characters in it (~\citeauthor{lample2016neural}~\citeyear{lample2016neural}). It's been shown that learning character embedding has been found useful for capturing morphological evidence (~\citeauthor{ling2015finding}, ~\citeyear{ling2015finding}). Figure \ref{fig:charlstm} describes the architecture of the using character embeddings and BiLSTM to generate word embeddings. The input to the character embedding BiLSTM is the letter sequence of a word. We define a character dictionary mapping each character to a $d$-dimensional vector representation. The English character dictionary contains uppercase and lowercase letters, numbers, and punctuation. We look up each $c_{i}$ of the input letter sequence from the dictionary and get the input vectors $X:\left\{x_{1},x_{2},\dots,x_{n}\right\}$. Then, the input vectors $X$ is fed into BiLSTM to generate forward and backward hidden embeddings of the character sequence. We concatenate the last forward hidden embedding $\overrightarrow {h_{n}}$ and the last backward hidden embedding $\overrightarrow {h_{1}}$ with the embedding from the word vector dictionary to obtain the final word embedding.
-
-We combine the Character Embedding architecture with BiLSTM and CRF by using the final concatenated word embeddings as input to BiLSTM. Then we get the fully structured BiLSTM model (BiLSTM-Char-CRF) for sequence tagging. The character embeddings and word embeddings are learned together during training.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{bilstmchar.pdf}
- \caption{The word embedding derived from the character embeddings}
-  \label{fig:charlstm}
-\end{figure}
-
-
- 
-\section{Experiments and Results}
-
-To evaluate the BiLSTM models, we run the model with three configurations on POS and NER: the BiLSTM model with word features only (BiLSTM); the BiLSTM model with character embedding (BiLSTM-Char); the BiLSTM model with character embedding and a CRF layer(BiLSTM-Char-CRF). We report the performance and decoding speed of the models on Penn Treebank data set for POS, and on CoNLL 2003 data set for NER. 
-
-As the implementation for feedforward models, we implement the BiLSTM models using Python and the Tensorflow 1.0 library. The hidden layer size in character sequence BiLSTM is set to 25, and the hidden layer size in word sequence BiLSTM-CRF is set to 100, and the rest of the hyperparameters are the same as the ones in the feedforward networks.
-
-Since dropout training (~\citeauthor{hinton2012improving}, ~\citeyear{hinton2012improving}) can improve the performance by encouraging the model to depend on both character embeddings and word embeddings, we apply a dropout mask on the embedding layer before the BiLSTM layer. The dropout rate is set to 0.5 in the experiments.  
-
-Figure \ref{fig:lstmbar} illustrates the performance of BiLSTM, BiLSTM-Char, BiLSTM-Char-CRF. As expected, the fully structured BiLSTM model outperforms the other two. Character Embedding increases the POS accuracy by 1.17, and increase the NER F1 score by 3.34. It reveals that the BiLSTM networks do not heavily depend on features other than words, and character embedding can help improve the performance of the models. Compared to BiLSTM-Char, BiLSTM-Char-CRF improves the POS performance by 0.13, and improves the NER performance by 1.79. CRF layer is more helpful for NER for the reason that there are grammar constrains on NER tags.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{lstmbar.png}
- \caption{Performance comparison between BiLSTM models on POS and NER}
-  \label{fig:lstmbar}
-\end{figure}
-
-Table \ref{table:lstm-table1} and Table \ref{table:lstm-table2} describe the final results of the performance and decoding speed of the BiLSTM models on the POS and NER. It is obvious that the more features the model has, the slower it would be. Adding a CRF layer will increase the performance but decrease the decoding time. Table \ref{table:lstm-table3} benchmarks the fully structured BiLSTM-Char-CRF model against Feedforward-History and Feedforward-CRF. 
-
-\begin{table}[]
-\centering
-\caption{BiLSTM Models Accuracy and F-Score}
-\label{table:lstm-table1}
-\begin{tabular}{|c|c|c|}
-\hline
-Model         & POS (Accuracy)  & NER (F-Score)       \\ \hline
-BiLSTM  & 96.01     & 84.78                             \\ \hline
-BiLSTM-Char & 97.21 & 88.32             \\ \hline
-BiLSTM-Char-CRF & 97.34  & 90.11             \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
-\caption{BiLSTM Models Decoding Speed}
-\label{table:lstm-table2}
-\begin{tabular}{|c|c|c|}
-\hline
-Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-BiLSTM             & 981(23036)     & 1637(20740)       \\ \hline
-BiLSTM-Char        & 596(13992)  & 889(11271)             \\ \hline
-BiLSTM-Char-CRF    & 383(9009)  & 795(10100)         \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
-\caption{Comparison between BiLSTM-Char-CRF, Feedforward-History, Feedforward-CRF}
-\label{table:lstm-table3}
-\begin{tabular}{|c|c|c|}
-\hline
-Model       & POS  (sentences, words/sec)  & NER  (sentences, words/sec)      \\ \hline
-Feedforward-History            & 829(19474)     & 1390(17609)       \\ \hline
-Feedforward-CRF        & 761(17877)  & 1374(17412)             \\ \hline
-BiLSTM-Char-CRF    & 383(9009)  & 795(10100)         \\ \hline
-\end{tabular}
-\end{table}
-
-\chapter{Mention2Vec Models}
-
-In this chapter, we introduce two multitasking models for POS and NER respectively. The multitasking model are based on the Mention2Vec model which is proposed for NER. We conduct experiments using the multitasking models on POS and NER and show their performance and decoding speed. 
-
-\section{Model Description}
-
-\subsection{Feedforward-Mention2Vec for NER}
-
-Mention2Vec is a neural network model for NER, which uses BiLSTMs to predict boundaries and entity types separately (~\citeauthor{stratos2016mention2vec}, ~\citeyear{stratos2016mention2vec}). We summarize the Mention2Vec model into three steps. The first step is using BiLSTM to generate hidden embeddings which is the same in the BiLSTM-Char-CRF model. Figure \ref{fig:mention2vec1} illustrates the first step of Mention2Vec in a NER example. We denote the input sentence as $W: \left\{w_{1}, w_{2}, \dots, w_{n}\right\}$, vector concatenation operation as $\oplus$, input embedding as $X: \left\{x_{1}, x_{2}, \dots, x_{n}\right\}$ which are the concatenations of the character embeddings and the word embeddings, the hidden embeddings as $H: \left\{h_{1}, h_{2}, \dots, h_{n}\right\}$
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{mention2vec1.pdf}
- \caption{The first step of Mention2Vec for NER}
-  \label{fig:mention2vec1}
-\end{figure}
-
-%In each training step, the model optimizes the boundary detection loss and type prediction loss jointly. We describe the Mention2Vec model for NER in detail here.
-
-The second step of Mention2Vec is boundary detection which is predicting $\left\{I, O, B\right\}$ labels for each word in NER. Mention2Vec takes the hidden embeddings produced in step 1, and feed them in to a feedforward network layer to get the output label probability distributions. Since the boundary labels has strong correlations, Mention2Vec uses CRF to capture the dependency and produce the output label sequence. Figure \ref{fig:mention2vec2} illustrates the second step of Mention2Vec. The output label probability distribution is denoted as $p_{i}$ for word $w_{i}$, and the gold boundary label sequence is denoted as $Y_{label}$. In each training step, The boundary detection loss is given by the negative log likelihood of the gold boundary label sequence, shown in \ref{eqn:loss1}
-
-\begin{equation}\label{eqn:loss1}
-  L_{1}\left( \theta ,\theta _{1}\right) =-\log \left( p\left( Y_{label}|h_{1}, h_{2} \dots h_{n}\right) \right) 
-\end{equation}
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{mention2vec2.pdf}
- \caption{The second step of Mention2Vec for NER}
-  \label{fig:mention2vec2}
-\end{figure}
-
-The third step of Mention2Vec is type prediction which is finding the actual types for each entity in the sentence, given the hidden embeddings and the entity boundaries. The model first looks up the hidden embeddings for the word spans. Then, it feeds the word span hidden embeddings into an additional BiLSTM and obtains the corresponding vector representations for the word span $\mu$ by concatenating the forward and the backward final states of BiLSTM. A feedforward network, at the end, is used to map the word span vector representations $\mu$ to type probability distribution $r$. Figure \ref{fig:mention2vec3} illustrates the third step of Mention2Vec.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{mention2vec3.pdf}
- \caption{The third step of Mention2Vec for NER}
-  \label{fig:mention2vec3}
-\end{figure}
-
-The gold type label sequence of an input sentence is denoted$Y_{type}$. Assuming there are $l$ named entities in a sentence, and the start index and the end index of an entity is represented as $s$ and $e$, the type prediction loss is computed by \ref{eqn:loss2}:
-
-\begin{equation}\label{eqn:loss2}
-  L_{2}\left( \theta ,\theta _{2}\right) =-\sum _{l}\log P\left( r^{l}|h_{s}^{l}{\ldots }h_{e}^{l}\right)
-\end{equation}
-
-During training, the model uses the gold boundaries and types to compute the type prediction loss. In each training step, the boundary detection loss and the type prediction loss are minimized jointly. The training objective is to find the boundary sequence and type sequence that minimize the sum of $L_{1}$ and $L_{2}$.
-
-
-In order to further speed up the the tagging system as well as capture the correlation between boundary tags, we consider using a different network for boundary detection. Shown in Chapter 2 and Chapter 3, Feedforward-CRF produces relatively good performance on NER with faster speed than BiLSTM. We then replace BiLSTM in the first step of Mention2Vec with a Feedforward-CRF layer described in Section \ref{Feedforward-CRF}. We denote this new model for NER as Feedforward-Mention2Vec. Feedforward-Mention2Vec still has three steps, the second step and the third step are the same as the ones of Mention2Vec. The first step uses a feedforward network to produce the hidden embeddings, which is illustrated in Figure \ref{fig:mention2vec4}.
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{mention2vec4.pdf}
- \caption{The first step of Feedforward-Mention2Vec for NER}
-  \label{fig:mention2vec4}
-\end{figure}
-
-The run time of decoding the boundaries is constant in both Feedforward-Mention2Vec and Mention2Vec, since there are only three type of boundaries ("I", "O", "B") in the CRF layer. In other CRF based models, like BiLSTM-Char-CRF, the decoding time has time complexity $O\left(n^2\right)$ where n is the number of types. Thereby, the decoding time of Feedforward-Mention2Vec scales linearly in the number of types, the same as Mention2Vec.
-
-\subsection{BPE-Mention2Vec for POS}
-In POS, each word in the input sentence is assigned a unique tag. Since there is no tag chunk existing in POS, it's not necessary to use a multitasking model on POS. However, we come up a way to convert POS into a NER-like task through the help of Byte Pair Encoding. Inspired by the work using BPE to to deal with rare words in machine translation (~\citeauthor{sennrich2015neural}, ~\citeyear{sennrich2015neural}), we initially wanted to use BPE to capture morphological evidences of the words and replace the spelling features like prefix and suffix. BPE is a compression algorithm which replaces frequent pairs with an unused byte. \cite{sennrich2015neural} proposed a way to adapt BPE for word segmentation: using BPE to segment words into subword units of different length, and building a vocabulary dictionary using word frequency. For our POS tagging system, we learn BPE merge operations on the training data. To segment training data and test data, we first split each word in characters and them apply BPE to merge the characters into larger chunks. In order to restore the words, we use the IOB label scheme to label the subword units. Since there are subword units sharing the tag, POS becomes a task similar with NER. Figure \ref{fig:bpe} shows an example of using BPE to segment a sentence with POS tags. 
-
-In our proposed BPE-Mention2Vec model for POS, there are three main steps. In the first step, given a sentence, we use BPE to segment the words and convert the corresponding tags using the IOB scheme. After preprocessing, we have a NER-like task with known boundary of each entity span, so we can apply the same methods in Feedforward-Mention2Vec to predict the label type. In the second step, we use a feedforward network to produce the hidden embeddings of the input words. CRF is not used here because that the boundary labels are known. The third step of BPE-Mention2Vec uses a BiLSTM to predict the POS tags for each word span based on the hidden embeddings and the known boundaries. Figure \ref{fig:bpemention2vec} describes the process of using BPE-Mention2Vec to find POS tags for an example sentence . 
-We use BPE to preprocess the training data and test data, and we train the BPE-Mention2Vec model on segmented training data with tags in IOB label scheme. 
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.5]{bpe.png}
- \caption{An example of using BPE for word segmentation}
-  \label{fig:bpe}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=0.6]{bpemention2vec.pdf}
- \caption{An example of using BPE-Mention2Vec to find POS tags}
-  \label{fig:bpemention2vec}
-\end{figure}
-
-\section{Experiments and Results}
-
-We empirically evaluate the Mention2Vec model and the Feedforward-Mention2Vec model for NER, and the BPE-Mention2Vec model for POS. We implement these models in python using Tensorflow 1.0. The experiments in this section use the same set of hyper parameters from the previous experiments. 
-
-In the NER experiments, we compare the Feedforward-Mention2Vec model with the original Mention2Vec model on the CoNLL2003 dataset. We use the BiLSTM-Char-CRF model as the baseline model since it achieves highest F1 score among the previous models we built and is recognized as the state-of-the-art model for NER. Table \ref{table:ner-mention2vec1} demonstrates the NER performance and decoding speed of these three neural network models on CoNLL 2003 data set. The Mention2Vec model achieves 89.51 F1 score which is lower then the 90.11 F1 score of Bi-LSTM-CRF model, and it is slightly slower than BiLSTM-Char-CRF. The Feedforward-Mention2Vec model achieves 88.79 F1 Score compared to 89.51 of Mention2Vec and 90.11 of BiLSTM-Char-CRF, but it is 1.3 times faster than Mention2Vec and 1.2 times faster than BiLSTM-Char-CRF. The empirical results demonstrate that the Feedforward-Mention2Vec model performs competitively on the NER tagging task while being faster than original Mention2Vec model and the state-of-the-art model.
-
-Since we know that Feedforward-Mention2Vec scales linearly in the number of types while BiLSTM-Char-CRF grows quadratically in the number of types. Now we have the performance and decoding speed of these two models on CoNLL 2003. We also ran the NER experiments on the OntoNote data set which has 18 Named Entity types. Table \ref{table:ner-mention2vec1} reports the final results of the experiments, and Figure \ref{} illustrates the decoding speed comparison of the two models on two different data sets. While the Feedforward-Mention2Vec model is 1.3 times faster than the BiLSTM-Char-CRF model on the data set with 4 named entity types, it an order of magnitude difference on the data set with 18 named entity types.
-
-In the POS experiments, we compare the BPE-Mention2Vec model with the BiLSTM-Char-CRF model which is the state-of-the-art model for POS. Table \ref{table:pos-mention2vec} demonstrates the POS performance and decoding speed of BilSTM-Char-CRF, and BPE-Mention2Vec Model on Penn Treebank data set. The BPE-Mention2Vec obtains less accurate result then the BiLSTM-Char-CRF model. Since using word segmentation increases the number of words to be processed and introduces more preprocess time, BPE-Mention2Vec is slower than the BilSTM-Char-CRF. The empirical results conclude that BilSTM-Char-CRF is a better model than BPE-Mention2Vec for POS. 
-
-\begin{table}[]
-\centering
-\caption{NER tagging system F1 Scores and speed }
-\label{table:ner-mention2vec}
-\begin{tabular}{|c|c|c|}
-\hline
-Model            & F1     & Speed(Sentences/sec)        \\ \hline
-BiLSTM-Char-CRF & 90.11  & 795(10100)            \\ \hline
-Mention2Vec  & 89.51     & 923(11695)              \\ \hline
-Feedforward-Mention2Vec      & 88.79  &  1059(13445)                   \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
-\caption{POS tagging system accuracy Scores and speed}
-\label{table:pos-mention2vec}
-\begin{tabular}{|c|c|c|}
-\hline
-Model            & Accuracy     & Speed(sents/sec)        \\ \hline
-BILSTM-Char-CRF & 97.34  & 383(9009)                  \\ \hline
-BPE-Mention2Vec      & 96.04  & 209(4923)                   \\ \hline
-\end{tabular}
-\end{table}
-
+\input{tex/mention2vec}
 
 
 \chapter{Experiments and Discussion}
 
-In this Chapter, we put together the performance and decoding speed of all the network models on POS and NER, and provide analysis over the results.
+In this Chapter, we put together the final experiment results of all the network models presented in this thesis, and provide analysis over the results.
 
-Table \ref{table:my-label1} records the performance of the neural network models on POS and NER. It also include the results from other systems including Syntaxnet (~\citeauthor{alberti2017syntaxnet}, ~\citeyear{alberti2017syntaxnet}) and NeuroNet (~\citeauthor{2017neuroner}, ~\citeyear{2017neuroner}), which can produce the state-of-the-art results on POS and NER respectively. Syntaxnet has a POS tagger using a similar model with the Feedforward-History model, and NeuroNet uses the fully structured BiLSTM model for NER. While our reimplementation obtains slightly lower accuracy score and F1 score than the state-of-art, we emphasize the main goal of this thesis is to compare different neural networks, and to present to new multitasking models for POS and NER respectively.
+Table \ref{table:my-label1} records the performance of the neural network models on POS and NER. The POS performance is measured on the Penn Treebank data set, and the NER performance is measured on the CoNLL 2003 data set. It also includes the results from other systems including Syntaxnet (~\citeauthor{alberti2017syntaxnet}, ~\citeyear{alberti2017syntaxnet}) and NeuroNet (~\citeauthor{2017neuroner}, ~\citeyear{2017neuroner}), which can produce the state-of-the-art results on POS and NER respectively. Syntaxnet has a POS tagger using a similar model with the Feedforward-History model, and NeuroNet implements the fully structured BiLSTM model (BiLSTM-Char-CRF) for NER. While our re-implementation obtains slightly lower accuracy score and F1 score than the state-of-art results, we emphasize that our main goal of this thesis is to compare different neural networks, and to present to new multitasking models.
 
-Table \ref{table:my-label2} records the decoding speed of different neural network models on the test data. All experiments are ran on the same GPU. It's obvious that the less extra features in the same network the faster the decoding speed will be. In general, the greedy tagging system using feedforward models are faster then the system using BiLSTM models. Since CRF models the output labels on the sentence level and introduces a transition matrix, it slows down the decoding speed.
+Table \ref{table:my-label2} records the average decoding speed of different neural network models on the test data. All experiments are ran on the same GPU. It's obvious that the less features used in the same model the faster the decoding speed of the model will be. In general, the greedy tagging systems using feedforward models are faster then the systems using BiLSTM models. Since the CRF based models introduce a transition matrix and uses dynamic programming algorithm to decode the sequence, they are slower than the systems without the CRF layer.
 
 \begin{table}[]
 \centering
-\caption{Neural Network Models Accuracy and F-Score}
+\caption{Neural Network Models Accuracy and F1 Score}
 \label{table:my-label1}
 \begin{tabular}{|c|c|c|}
 \hline
@@ -571,7 +242,7 @@ BPE-Mention2Vec & 96.04     &  _   \\ \hline
 
 \begin{table}[]
 \centering
-\caption{Neural Network Models Speed}
+\caption{Neural Network Models Decoding Speed}
 \label{table:my-label2}
 \begin{tabular}{|c|c|c|}
 \hline
@@ -587,11 +258,11 @@ BPE-Mention2Vec     & 209(4923)  &  _               \\ \hline
 \end{tabular}
 \end{table}
 
-Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural networks. Among the neural network models for POS systems, BiLSTM-Char-CRF model achieves the best per word accuracy 97.34\%, and Feedforward-CRF model obtains the second best per word accuracy 97.30\%. Feedforward-Word model achieves the fastest decoding speed: the POS greedy system using Feedforward-Word model decodes 504 sentences per second. The line in Figure \ref{fig:pos} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-Word model which is the fastest model. The models above the line are faster but performs slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, so that they are less ideal for POS. Feedforward-History model is the fastest model with competitive performance, and it is about 2 times faster than the fully structured BiLSTM model.
+Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural network models. Among the neural network models for POS systems, BiLSTM-Char-CRF achieves the best per word accuracy 97.34\%, and Feedforward-CRF obtains the second best per word accuracy 97.30\%. Feedforward model achieves the fastest decoding speed since it employs a simple neural network without extra features: the POS greedy system using the Feedforward model decodes 1319 sentences per second. The line in Figure \ref{fig:pos} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but performs slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, which makes them less ideal for POS. Feedforward-History model is the fastest model with competitive performance on POS, and it is about 2 times faster than BiLSTM-Char-CRF.
 
-Figure \ref{fig:ner} illustrates the trade-off between performance and speed in NER systems using different neural networks. BiLSTM-Char-CRF achieves the highest F1 Score 90.11, and Feedforward-Mention2Vec obtains the second best F1 Score 88.79. Feedforward-word model achieves the fastest decoding speed: the NER greedy system using the Feedforward-word model decodes 780 sentences per second. The line in Figure \ref{fig:ner} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward-word model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and Feedforward-Mention2Vec. Models below the line are slower and less accurate, so that they are less ideal for NER. Feedforward-Mention2Vec model is the fastest model with competitive performance. Feedforward-Mention2Vec obtains 88.79 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
+Figure \ref{fig:ner} illustrates the trade-off between performance and speed in NER systems using different neural network models. BiLSTM-Char-CRF achieves the highest F1 Score 90.11, and Feedforward-Mention2Vec obtains the second best F1 Score 88.79. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features: the NER greedy system using the Feedforward model decodes 2177 sentences per second. The line in Figure \ref{fig:ner} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and Feedforward-Mention2Vec. Models below the line are slower and less accurate, which makes them less ideal for NER. Feedforward-Mention2Vec model is the fastest model with competitive performance. Feedforward-Mention2Vec obtains 88.79 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
 
-As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward neural network models can achieve comparable performance and faster speed than the systems using recurrent models on POS; the Feedforward-Mention2Vec model performs competitively with the BiLSTM-Char-CRF (state-of-the-art) model on NER.
+As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward networks can achieve comparable performance and faster speed than the systems using recurrent models on POS; the multitasking model (Feedforward-Mention2Vec) performs competitively with the state-of-the-art model (BiLSTM-Char-CRF) on NER.
 
 \begin{figure}
   \begin{tikzpicture}
@@ -602,8 +273,8 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 	mark size=3.0pt,
 	title={POS Accuracy VS Speed},
 	scatter/classes={%
-		Feedforward-word={mark=square*},%
-		Feedforward-history={mark=triangle*},%
+		Feedforward={mark=square*},%
+		Feedforward-History={mark=triangle*},%
 		Feedforward-CRF={mark=o,draw=black},%
 		BiLSTM={mark=diamond*},%
 		BiLSTM-Char={mark=halfcircle*},%
@@ -614,22 +285,22 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    1319  95.89   Feedforward-word 
-    829   97.28   Feedforward-history 
+    1319  95.89   Feedforward 
+    829   97.28   Feedforward-History 
     761   97.30   Feedforward-CRF 
     981   96.01   BiLSTM 
     596   97.21   BiLSTM-Char
     383   97.34   BiLSTM-Char-CRF
     209   96.04   BPE-Mention2Vec
     };
-    \addplot+ [color=black,mark=*]table {
+    \addplot+ [mark=none]table {
     x     y      label
-    1319   95.89   Feedforward-word  
+    1319   95.89   Feedforward  
     383   97.34   BiLSTM-Char-CRF
     
     };
-	\addlegendentry{Feedforward-word}
-	\addlegendentry{Feedforward-history}
+	\addlegendentry{Feedforward}
+	\addlegendentry{Feedforward-History}
 	\addlegendentry{Feedforward-CRF}
 	\addlegendentry{BiLSTM}
 	\addlegendentry{BiLSTM-Char}
@@ -650,8 +321,8 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 	mark size=3.0pt,
 	title={NER F1 Score VS Speed},
 	scatter/classes={%
-		Feedforward-word={mark=square*},%
-		Feedforward-history={mark=triangle*},%
+		Feedforward={mark=square*},%
+		Feedforward-History={mark=triangle*},%
 		Feedforward-CRF={mark=o,draw=black},%
 		BiLSTM={mark=diamond*},%
 		BiLSTM-Char={mark=halfcircle*},%
@@ -662,22 +333,22 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    2117   84.12   Feedforward-word 
-    1390   86.54   Feedforward-history 
+    2117   84.12   Feedforward 
+    1390   86.54   Feedforward-History 
     1374   87.85   Feedforward-CRF 
     1637   84.78   BiLSTM 
-    889   88.32   BiLSTM-Char
-    795   90.11   BiLSTM-Char-CRF
+    889   88.32    BiLSTM-Char
+    795   90.11    BiLSTM-Char-CRF
     1059   88.97   Feedforward-Mention2Vec
 	};
-	\addplot+ [color=black,mark=*]table {
+	\addplot+ [mark=none]table {
     x     y      label
-    2117   84.12   Feedforward-word 
+    2117   84.12   Feedforward 
     797   90.11   BiLSTM-Char-CRF
     
     };
-	\addlegendentry{Feedforward-word}
-	\addlegendentry{Feedforward-history}
+	\addlegendentry{Feedforward}
+	\addlegendentry{Feedforward-History}
 	\addlegendentry{Feedforward-CRF}
 	\addlegendentry{BiLSTM}
 	\addlegendentry{BiLSTM-Char}
@@ -691,7 +362,9 @@ As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequ
 
 \chapter{Conclusion and Future Work}
 
-This thesis presents and compares different Neural Network models for sequence tagging. The empirical result shows that simple Feedforward networks can achieve competitively results while being significantly faster than the recurrent BiLSTM models on POS. The empirical result also demonstrates that the multitasking Feedforward-Mention2Vec model performs well on the NER task.
+This thesis presents and compares different Neural Network models for sequence tagging tasks. The empirical result reveals that simple feedforward networks can achieve competitive results while being significantly faster than the BiLSTM networks on POS. The empirical result also demonstrates that the multitasking Feedforward-Mention2Vec model performs well on the NER task, and it is more scalable in the number of named entity types.
+
+In the future, we would like to explore more parallel computing techniques to further accelerate the existing neural network models for sequence tagging. We would also like to build an extended tagging system which predicts the POS tags and use the predicted POS tags as known features in NER.
 
 
 %   BACK MATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
