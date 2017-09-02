@@ -1,10 +1,10 @@
 \chapter{Discussion}
 
-In this Chapter, we put together the final experiment results of all the network models presented in this thesis, and provide analysis over the results.
+In this Chapter, we put together the final experiment results of the network models presented in this thesis, and provide an analysis of the results.
 
-Table \ref{table:my-label1} records the performance of the neural network models on POS and NER. The POS performance is measured on the Penn Treebank data set, and the NER performance is measured on the CoNLL 2003 data set. It also includes the results from the state-of-the-art models on POS and NER. While our implementations obtain slightly lower accuracy score and F1 score than the state-of-art results, we emphasize that our main goal of this thesis is to compare different neural networks, and to present to new multi-task models.
+Table \ref{table:my-label1} records the performance of the neural network models for POS and NER. The POS performance is measured on the Penn Treebank data set, and the NER performance is measured on the CoNLL 2003 data set. It also includes the results from the state-of-the-art models on Penn Treebank and CoNLL 2003. While our implementations obtain slightly lower accuracy score and F1 score than the state-of-art results, we emphasize that our main goal of this thesis is to compare different neural networks, and to present two new multi-task models.
 
-Table \ref{table:my-label2} records the average decoding speed of different neural network models on the Penn Treebank and CoNLL 2003 test data. All experiments are conducted on a GPU. It's obvious that the less features used in the same model the faster the decoding speed of the model will be. In general, the greedy tagging systems using feedforward models are faster then the systems using BiLSTM models. Since the CRF based models introduce a transition matrix and uses dynamic programming algorithm to decode the sequence, they are slower than the systems without the CRF layer.
+Table \ref{table:my-label2} records the average decoding speed of different neural network models on the Penn Treebank and CoNLL 2003 test data. All experiments are conducted on a GPU. It is obvious that the fewer features used in the same model the faster the decoding speed of the model will be. In general, the greedy tagging systems using feedforward models are faster then the systems using BiLSTM models. Since the CRF based models introduce a transition matrix and uses dynamic programming algorithm to decode the sequence, they are slower than the models without the CRF layer.
 
 \begin{table}[]
 \centering
@@ -13,10 +13,10 @@ Table \ref{table:my-label2} records the average decoding speed of different neur
 \begin{tabular}{|c|c|c|}
 \hline
 Model         & Penn Treebank (Accuracy)  & CoNLL 2003 (F1 Score)       \\ \hline
-Syntaxnet    & \textbf{97.44}         &   _     \\ \hline
-NeuroNet    & _    & \textbf{90.5}                \\ \hline 
-Feedforward-word    & 95.89          &   84.12     \\ \hline
-Feedforward-history & 97.28     & 86.54        \\ \hline
+\text{\cite{ling2015finding}} & \textbf{97.78} & _ \\ \hline
+\text{\cite{lample2016neural}} with CRF & _ & \textbf{90.94} \\ \hline 
+Feedforward    & 95.89          &   84.12     \\ \hline
+Feedforward-History & 97.28     & 86.54        \\ \hline
 Feedforward-CRF     & 97.30          &   87.85     \\ \hline
 BiLSTM  & 96.04     & 84.78                             \\ \hline
 BiLSTM-Char & 97.21 & 88.32             \\ \hline
@@ -33,8 +33,8 @@ BPE-Mention2Vec & 96.04     &  _   \\ \hline
 \begin{tabular}{|c|c|c|}
 \hline
 Model & Penn Treebank (words/sec) & CoNLL 2003 (words/sec) \\ \hline
-Feedforward-word    & 30967    & 26819    \\ \hline
-Feedforward-history & 19474    & 17609     \\ \hline
+Feedforward    & 30967    & 26819    \\ \hline
+Feedforward-History & 19474    & 17609     \\ \hline
 Feedforward-CRF     & 17877    & 17412     \\ \hline
 BiLSTM              & 23036    & 20740       \\ \hline
 BiLSTM-Char         & 13992    & 11271           \\ \hline
@@ -44,26 +44,9 @@ BPE-Mention2Vec     & 4923  &  _               \\ \hline
 \end{tabular}
 \end{table}
 
-Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural network models. Among the neural network models for POS systems, BiLSTM-Char-CRF achieves the best per word accuracy 97.34\%, and Feedforward-CRF obtains the second best per word accuracy 97.30\%. Feedforward model achieves the fastest decoding speed since it employs a simple neural network without extra features: the POS greedy system using the Feedforward model decodes 1319 sentences per second. The line in Figure \ref{fig:pos} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but performs slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, which makes them less ideal for POS. Feedforward-History model is the fastest model with competitive performance on POS, and it is about 2 times faster than BiLSTM-Char-CRF.
+Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural network models. Among the neural network models for POS, BiLSTM-Char-CRF achieves the best per word accuracy 97.34\%, and Feedforward-CRF obtains the second best per word accuracy 97.30\%. Feedforward achieves the fastest decoding speed since it employs a simple neural network without extra features: the POS greedy system using the Feedforward model decodes 1319 sentences per second. The line in Figure \ref{fig:pos} connects BiLSTM-Char-CRF which is the most accurate model and Feedforward which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, which makes them less ideal for POS. Feedforward-History is the fastest model with competitive performance on POS, and it is about 2 times faster than BiLSTM-Char-CRF.
 
 Figure \ref{fig:ner} illustrates the trade-off between performance and speed of using different neural network models on CoNLL 2003. BiLSTM-Char-CRF achieves the highest F1 Score 90.11, and Feedforward-Mention2Vec obtains the second best F1 Score 88.79. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features: the NER greedy system using the Feedforward model decodes 2177 sentences per second. The line in Figure \ref{fig:ner} connects the BiLSTM-Char-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-Char-CRF, such as Feedforward-CRF and Feedforward-Mention2Vec. Models below the line are slower and less accurate, which makes them less ideal for NER. Feedforward-Mention2Vec model is the fastest model with competitive performance. Feedforward-Mention2Vec obtains 88.79 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
-
-As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward networks can achieve comparable performance and faster speed than the systems using recurrent models on POS; the multi-task model (Feedforward-Mention2Vec) performs competitively with the state-of-the-art model (BiLSTM-Char-CRF) on NER.
-
-Table \ref{table:my-label3} compares the performance and speed of BiLSTM-Char-CRF and Feedforward-Mention2Vec on CoNLL 2003 and OntoNotes. It shows that Feedforward-Mention2Vec with a simple architecture can achieve competitive performance with BiLSTM-Char-CRF on CoNLL 2003 and OntoNotes. The speed gap between Feedforward-Mention2Vec and BiLSTM-Char-CRF grows as the number of named entity types increases. There is more speed benefit in using a multi-task model like Feedforward-Mention2Vec when there are more types to classify.
-
-\begin{table}[]
-\centering
-\caption{F1 Scores and Decoding Speed on CoNLL 2003 and OntoNotes }
-\label{table:my-label3}
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-& \multicolumn{2}{c|}{F1 Score} & \multicolumn{2}{c|}{Decoding Speed (Words/Sec)} \\ \hline
-& CoNLL 2003     & OntoNotes    & CoNLL 2003              & OntoNotes             \\ \hline
-Feedforward-Mention2Vec & 88.97          & 86.34        & 13445                   & 10812                 \\ \hline
-BiLSTM-Char-CRF         & 90.11          & 83.18        & 10100                   & 7667                  \\ \hline
-\end{tabular}
-\end{table}
 
 \begin{figure}
   \begin{tikzpicture}
@@ -157,7 +140,24 @@ BiLSTM-Char-CRF         & 90.11          & 83.18        & 10100                 
 	\addlegendentry{Feedforward-Mention2Vec}
 	\end{axis}
 \end{tikzpicture}
- \caption{Results of the NER system using different Neural Network Models}
+ \caption{Results of the NER system using different Neural Network Models on CoNLL 2003}
   \label{fig:ner}
 \end{figure}
+
+As illustrated in Figure \ref{fig:pos} and Figure \ref{fig:ner}, the greedy sequence tagging systems using feedforward networks can achieve comparable performance and faster speed than the systems using recurrent models on POS; the multi-task model (Feedforward-Mention2Vec) performs competitively with the state-of-the-art model (BiLSTM-Char-CRF) on NER.
+
+Table \ref{table:my-label3} compares the performance and decoding speed of BiLSTM-Char-CRF and Feedforward-Mention2Vec on CoNLL 2003 and OntoNotes. It shows that Feedforward-Mention2Vec with a simple architecture can achieve competitive performance with BiLSTM-Char-CRF on CoNLL 2003 and OntoNotes. The speed gap between Feedforward-Mention2Vec and BiLSTM-Char-CRF grows as the number of named entity type increases. There is more speed benefit in using a multi-task model like Feedforward-Mention2Vec when there are more named entity types to classify. 
+
+\begin{table}[]
+\centering
+\caption{F1 Scores and Decoding Speed on CoNLL 2003 and OntoNotes }
+\label{table:my-label3}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+& \multicolumn{2}{c|}{F1 Score} & \multicolumn{2}{c|}{Decoding Speed (Words/Sec)} \\ \hline
+& CoNLL 2003     & OntoNotes    & CoNLL 2003              & OntoNotes             \\ \hline
+Feedforward-Mention2Vec & 88.97          & 86.24        & 13445                   & 10812                 \\ \hline
+BiLSTM-Char-CRF         & 90.11          & 83.18        & 10100                   & 7667                  \\ \hline
+\end{tabular}
+\end{table}
 
