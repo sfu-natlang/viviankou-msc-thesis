@@ -37,7 +37,23 @@ We add Character Embeddings in the sequence tagging system by concatenating the 
   \label{fig:charlstm}
 \end{figure}
 
+\subsection{Conditional Random Fields}
 
+Conditional Random Fields (CRF) models make decisions on sentence levels instead of making independent decisions on each word. We combine the BiLSTM model with a CRF layer to form the BiLSTM-CRF model. In BiLSTM-CRF, given a sequence of output predictions $y=\left( y_{1},y_{2},\ldots y_{n}\right)$, the score of the output sequence is:
+
+\begin{equation}
+S\left( y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}p_{i}\left(y_{i}\right)
+\end{equation}
+
+where $T$ is a matrix of transition scores such that $T_{i,j}$ represents the score of a transition from the label $i$ to label $j$, and $p_{i}\left(y_{i}\right)$ is the probability of $y_{i}$ being the label of word $i$.
+
+During training, we score every possible output sequence, and use a softmax layer to generate the probability distribution of output sequences, shown in Equation \ref{eqn:softmax}. Then, we minimize the negative log likelihood over the training sentences. During decoding, we can recover the tag sequences of test data using dynamic programming.
+
+\begin{equation}\label{eqn:softmax}
+P\left( y\right) = \textit{softmax}(S\left( y\right))
+\end{equation}
+
+BiLSTM-CRF model can effectively make use of the past and future input information and sentence level tag information. Figure shows an example of using BiLSTM-CRF to predict named entity labels.
  
 \section{Experiments and Results}
 
