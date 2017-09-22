@@ -51,27 +51,6 @@ and the loss function is:
 L\left(\theta\right) = -log\left(\sum _{i}^{n}p_{i}\left(y_{i}\right)\right),
 \end{equation}
 
-
-\subsection{Feedforward-CRF}
-\label{Feedforward-CRF}
-There are two ways to incorporate output tags in the model: the first one is to use the previous predicted tags as input features to feed into the feedforward network as in Feedforward-History; the second one is to use CRF on sentence level output tags as in the following model. Feedforward-CRF shares the same architecture with Feedforward-History except using CRF to model the output sequence after computing tag probability distribution for each individual word. Feedforward-History can perform well on some sequence tagging tasks in which output labels do not have strong correlations, such as POS. Some tasks have grammar constraints on output tags so that there are strong dependencies among them, such as NER. While Feedforward-History fails to take into account the grammar constrains on the output tag sequences, Feedforward-CRF can make final decisions on the sentence level. Since the first part of the architecture is the same as Feedforward-History, we skip this part. We describe how to apply CRF to model the sequence in detail here.
-
-Given a sequence of output predictions $y=\left( y_{1},y_{2},\ldots y_{n}\right)$,
-the score of the output sequence is:
-
-\begin{equation}
-S\left( y\right)=\sum _{i}^{n}T_{i,i+1}+\sum _{i}^{n}p_{i}\left(y_{i}\right)
-\end{equation}
-
-where $T$ is a matrix of transition scores such that $T_{i,j}$ represents the score of a transition from the label $i$ to label $j$, and $p_{i}\left(y_{i}\right)$ is the probability of $y_{i}$ being the label of word $i$.
-
-During training, we score every possible output sequence, and use a softmax layer to generate the probability distribution of output sequences, shown in Equation \ref{eqn:softmax}. Then, we minimize the negative log likelihood over the training sentences. During decoding, we can recover the tag sequences of test data using dynamic programming.
-
-\begin{equation}\label{eqn:softmax}
-P\left( y\right) = \textit{softmax}(S\left( y\right))
-\end{equation}
-
-
 \section{Experiments and Results}
 
 In POS experiments, we train the models using the Penn Treebank training data and development data. Then, we decode the test data using trained models and record the per word accuracy and decoding time. In NER experiments, we train the models using the CoNLL 2003 training data and development data. Then we decode the test data using the trained models, and record the F1 score and decoding time. The details of the data sets are shown in Table \ref{table:my-dataset}. The performance of POS is measured by per word accuracy, and the performance of NER is measured by F1 score. The speed is measured by the average number of sentences and words decoded per second. We conduct experiments using \ffa{} and \ffb. We also want to show robustness of the feedforward network models, so we build a model using a feedforward network with only word features, which serves as the baseline model in our experiments. The tagging system using a feedforward network with only word features is denoted as Feedforward model in this thesis.

@@ -52,16 +52,14 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
   \begin{tikzpicture}
 	\begin{axis}[%
 	ylabel={Accuracy},
-	xlabel={Sentences/Sec},
+	xlabel={Words/Sec},
 	scale only axis,
 	mark size=3.0pt,
 	title={POS Accuracy VS Speed},
 	scatter/classes={%
 		Feedforward={mark=square*},%
 		Feedforward-History={mark=triangle*},%
-		Feedforward-CRF={mark=o,draw=black},%
 		BiLSTM={mark=diamond*},%
-		BiLSTM-Char={mark=halfcircle*},%
 		BiLSTM-Char-CRF={mark=otimes*},%
 		BPE-Mention2Vec={mark=star}},%
 	legend style={at={(1.03,1)},anchor=north west,draw=black,fill=white,align=left}]
@@ -69,25 +67,20 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    1319  95.89   Feedforward 
-    829   97.28   Feedforward-History 
-    761   97.30   Feedforward-CRF 
-    981   96.01   BiLSTM 
-    596   97.21   BiLSTM-Char
-    383   97.34   BiLSTM-Char-CRF
-    209   96.04   BPE-Mention2Vec
+    30967  95.89   Feedforward 
+    19474   97.28   Feedforward-History 
+    23036   96.01   BiLSTM 
+    9009   97.34   BiLSTM-Char-CRF
+    4923   96.04   BPE-Mention2Vec
     };
     \addplot+ [mark=none]table {
     x     y      label
-    1319   95.89   Feedforward  
-    383   97.34   BiLSTM-Char-CRF
-    
+    30967   95.89   Feedforward  
+    9009   97.34   BiLSTM-Char-CRF
     };
 	\addlegendentry{Feedforward}
 	\addlegendentry{Feedforward-History}
-	\addlegendentry{Feedforward-CRF}
 	\addlegendentry{BiLSTM}
-	\addlegendentry{BiLSTM-Char}
 	\addlegendentry{BiLSTM-Char-CRF}
 	\addlegendentry{BPE-Mention2Vec}
 	\end{axis}
@@ -100,43 +93,39 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
 \begin{tikzpicture}
 	\begin{axis}[%
 	ylabel={$F1$ score},
-	xlabel={Sentences/Sec},
+	xlabel={Words/Sec},
 	scale only axis,
 	mark size=3.0pt,
 	title={NER F1 Score VS Speed},
 	scatter/classes={%
 		Feedforward={mark=square*},%
 		Feedforward-History={mark=triangle*},%
-		Feedforward-CRF={mark=o,draw=black},%
 		BiLSTM={mark=diamond*},%
-		BiLSTM-Char={mark=halfcircle*},%
 		BiLSTM-Char-CRF={mark=otimes*},%
+		Mention2Vec={mark=square},
 		Feedforward-Mention2Vec={mark=star}},%
 	legend style={at={(1.03,1)},anchor=north west,draw=black,fill=white,align=left}]
 	\addplot[scatter,only marks,%
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    2117   84.12   Feedforward 
-    1390   86.54   Feedforward-History 
-    1374   87.85   Feedforward-CRF 
-    1637   84.78   BiLSTM 
-    889   88.32    BiLSTM-Char
-    795   90.11    BiLSTM-Char-CRF
-    1059   88.97   Feedforward-Mention2Vec
+    26819   84.12   Feedforward 
+    17609   86.54   Feedforward-History 
+    20740   84.78   BiLSTM 
+    10100   90.11   BiLSTM-Char-CRF
+    9701    89.51   Mention2Vec
+    13445   88.97   Feedforward-Mention2Vec
 	};
 	\addplot+ [mark=none]table {
     x     y      label
-    2117   84.12   Feedforward 
-    797   90.11   BiLSTM-Char-CRF
-    
+    26819   84.12   Feedforward 
+    10100   90.11   BiLSTM-Char-CRF
     };
 	\addlegendentry{Feedforward}
 	\addlegendentry{Feedforward-History}
-	\addlegendentry{Feedforward-CRF}
 	\addlegendentry{BiLSTM}
-	\addlegendentry{BiLSTM-Char}
 	\addlegendentry{BiLSTM-Char-CRF}
+	\addlegendentry{Mention2Vec}
 	\addlegendentry{Feedforward-Mention2Vec}
 	\end{axis}
 \end{tikzpicture}
