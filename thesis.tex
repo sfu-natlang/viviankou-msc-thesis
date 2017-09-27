@@ -12,9 +12,15 @@
 \semester{Fall 2017}
 \date{12 September 2017}
 
-\keywords{Natural Language Processing; Sequence Tagging, Deep Learning}
+\keywords{Natural Language Processing; Sequence Tagging, Neural Networks}
 
-
+\committee{%
+	\chair{Dr.\ Arrvindh\ Shriraman}{Professor}
+	\member{Dr.\ Anoop Sarkar}{Senior Supervisor\\Professor}
+	\member{Dr.\ Fred Popowich}{Supervisor\\ Professor}
+	\member{Dr.\ Jiannan Wang}{ Examiner \\
+	Assistant Professor }
+}
 %   PACKAGES AND CUSTOMIZATIONS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   Add any packages or custom commands you need for your thesis here.
@@ -52,13 +58,14 @@
 \usepackage{multirow}
 \usepackage{underscore}
 \usepackage{pgfplots}
+\usepackage{subcaption}
+\usepackage{graphicx}
 \pgfplotsset{width=10cm,compat=1.15}
 
 \newcommand{\quotes}[1]{\textrm{``#1''}}
 \newcommand{\ffa}{Feedforward-History}
-\newcommand{\ffb}{Feedforward-CRF}
 \newcommand{\bia}{BiLSTM-Char}
-\newcommand{\bib}{BiLSTM-Char-CRF}
+\newcommand{\bib}{BiLSTM-CRF}
 \newcommand{\ma}{Feedforward-Mention2Vec}
 \newcommand{\mb}{BPE-Mention2Vec}
 %   FRONTMATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,19 +78,25 @@
 
 \frontmatter
 \maketitle{}
+\makecommittee{}
+
 
 \begin{abstract}
-Sequence Tagging, including part of speech tagging and named entity recognition, is an important task in NLP. Recurrent neural network models such as Bidirectional LSTMs have produced impressive results on sequence tagging. In this work, we first present a simple and fast greedy sequence tagging system using different types of feedforward neural network models. Then we show the speed and accuracy comparison between Bidirectional LSTMs and feedforward models. Besides the feedforward and the Bidirectional LSTM models, we propose two new models based on Mention2Vec by \cite{stratos2016mention2vec}: \ma{} for Named Entity Recognition and \mb{} for Part-of-Speech Tagging. \ma{} predicts named entity boundaries first and then predicts types of named entities. \mb{} uses the Byte Pair Encoding algorithm to segment words in a sequence first and then predicts the Part-of-Speech tags for the subword spans. We carefully design the experiments to demonstrate the speed and accuracy trade-off in different models. The empirical results reveal that feedforward models can achieve comparable accuracy and faster speed than recurrent models for Part-of-Speech tagging, and \ma{} is competitive with the fully structured BiLSTM model for Named Entity Recognition while being more scalable in the number of named entity types.
+Sequence Tagging, including part of speech tagging, chunking and named entity recognition, is an important task in NLP. Recurrent neural network models such as Bidirectional LSTMs have produced impressive results on sequence tagging. In this work, we first present a Bidirectional LSTM neural network model for sequence tagging tasks. Then we show a simple and fast greedy sequence tagging system using a feedforward neural network. We compare the speed and accuracy between the Bidirectional LSTM model and the greedy feedforward model. In addition, we propose two new models based on Mention2Vec by \cite{stratos2016mention2vec}: \ma{} for named entity recognition and chunking, and \mb{} for part-of-speech tagging. \ma{} predicts tag boundaries and corresponding types separately. \mb{} uses the Byte Pair Encoding algorithm to segment words first and then predicts the part-of-speech tags for the subword spans. We carefully design the experiments to demonstrate the speed and accuracy trade-off in different models. The empirical results reveal that the greedy feedforward model can achieve comparable accuracy and faster speed than recurrent models for sequence tagging, and \ma{} is competitive with the fully structured BiLSTM model for named entity recognition while being more scalable in the number of named entity types.
 
 \end{abstract}
 
+\begin{dedication} % optional
+
+To my beloved families who always support me and encourage me. 
+
+\end{dedication}
 
 \begin{acknowledgements} % optional
 
-I would like to express my profound sense of gratitude to my supervisor Dr.\ Anoop Sarkar for introducing me to this research
-topic and providing his continuous support and valuable guidance throughout my graduate study. I can not imagine having a better advisor and mentor. In addition, I would like to express my sincere appreciation to Dr.\ Fred Popowich for his useful advice and feedback on this work, and Dr.\ Jiannan Wang for being my defence examiner and reading my thesis.
+I would like to express my profound sense of gratitude to my supervisor Dr.\ Anoop Sarkar for introducing me to this research topic and providing his continuous support and valuable guidance throughout my graduate study. I can not imagine having a better advisor and mentor. In addition, I would like to express my sincere appreciation to Dr.\ Fred Popowich for his useful advice and feedback on this work, and Dr.\ Jiannan Wang for being my defence examiner and reading my thesis.
 
-
+Thanks to all of my natural language processing lab mates who helped me. I enjoy spending time with them. 
 
 
 \end{acknowledgements}
@@ -115,23 +128,23 @@ topic and providing his continuous support and valuable guidance throughout my g
 
 \chapter{Conclusion and Future Work}
 
-This thesis presents and compares different neural network models for sequence tagging tasks. The empirical results reveal that simple feedforward networks can achieve competitive results while being significantly faster than the BiLSTM networks on POS. The empirical results also demonstrate that Feedforward-Mention2Vec performs well on NER, and it is more scalable in the number of named entity types.
+This thesis presents and compares different neural network models for sequence tagging tasks. The empirical results reveal that simple feedforward networks can achieve competitive results while being significantly faster than the BiLSTM networks. The empirical results also demonstrate that Feedforward-Mention2Vec performs well on Chunking and NER, and it is more scalable in the number of named entity types in NER.
 
 \section{Contribution}
-In this thesis, we first built three feedforward neural network models for POS and NER: Feedforward, Feedforward-History, and Feedforward-CRF. We conducted experiments to compare the decoding speed and performance between them. Experimental evaluations show that the feedforward models are not strongly dependent on hand engineered features, and the models are able to automatically learn the useful features for making decisions. Compared to Feedforward-CRF, Feedforward-History achieves a similar per-word accuracy score on POS, but it is less accurate on NER. 
+In this thesis, we first built the the state-of-the-art model for sequence tagging: BiLSTM-CRF. We ran the BiLSTM model with different configurations on three sequence tagging task: POS, Chunking and NER. 
 
-Then, we re-implemented the state-of-the-art model for sequence tagging: BiLSTM-Char-CRF. We ran the BiLSTM model with different configurations on POS and NER, and we compared the decoding speed and performance between BiLSTM models and feedforward models. As the experiments show, BiLSTM models are robust and are more accurate then feedforward models in general. Since feedforward models have a simpler architecture and fewer parameters, feedforward models are faster then BiLSTM models.
+Then, we implemented the greedy feedforward sequence tagging system. We compared the decoding speed and performance between BiLSTM models and feedforward models. As the experiments show, BiLSTM models are more accurate then feedforward models in general. Since feedforward models have a simpler architecture and fewer parameters, feedforward models are faster then BiLSTM models. Experiments also show that the feedforward models are not strongly dependent on hand engineered features, and the models are able to automatically learn the useful features for making decisions.
 
-In addition to feedforward models and BiLSTM models, we presented Feedforward-Mention2Vec for NER which is a combination of Feedforward-CRF and Mention2Vec, and BPE-Mention2Vec for POS which is based on BPE and Mention2Vec. Both of these two models are multitasking models. Feedforward-Mention2Vec predicted boundaries of named entity labels and types of named entity labels separately using a feedforward network, a BiLSTM network, and CRF. BPE-Mention2Vec first segmented words using BPE, and predicted the part-of-speech tags for the subword units using a BiLSTM network. Feedforward-Mention2Vec performs slightly worse than the state-of-the-art model (BiLSTM-Char-CRF) on CoNLL 2003, but its decoding speed is faster than BiLSTM-Char-CRF. As the number of named entity types grows, the decoding speed of Feedforward-Mention2Vec grows linearly while the decoding speed of BiLSTM-Char-CRF grows quadratically. For example, Feedforward-Mention2Vec is 1.3 times faster than BiLSTM-Char-CRF on CoNLL 2003 with 4 named entity types while it is 1.4 times faster on OntoNotes with 18 named entity types.
+In addition to feedforward models and BiLSTM models, we presented Feedforward-Mention2Vec for Chunking and NER which is a combination of feedforward models and Mention2Vec, and BPE-Mention2Vec for POS which is based on BPE and Mention2Vec. Both of these two models are multitask models. Feedforward-Mention2Vec predicts boundaries of tags and types of the tags separately: it uses a feedforward network and CRF for boundary detection, and a BiLSTM for type prediction. BPE-Mention2Vec first segments words using BPE, and predicts the part-of-speech tags for the subword units using a BiLSTM network. Feedforward-Mention2Vec performs slightly worse than the state-of-the-art model (BiLSTM-CRF), but its decoding speed is faster. In NER, as the number of named entity types grows, the decoding time of Feedforward-Mention2Vec grows linearly while the decoding time of BiLSTM-CRF grows quadratically. 
 
-Lastly, we summarized all the experiment results and compared the performance and decoding speed of all the models presented in this thesis. We provided analysis on the speed and accuracy trade-off in different models. Feedforward is the fastest among all models, since it includes no extra features and employs a simple network architecture. Our re-implementation of BiLSTM-Char-CRF achieves near state-of-the-art performance on POS and NER. Feedforward-History performs better on POS then on NER with a faster decoding speed than BiLSTM-Char-CRF. Feedforward-Mention2Vec performs slightly worse than BiLSTM-Char-CRF on NER, but its decoding speed is faster and grows linearly in the number of named entity types.
+Lastly, we summarized all the experiment results and compared the performance and decoding speed of all the models presented in this thesis. We provided analysis on the speed and accuracy trade-off in different models. Feedforward is the fastest among all models, since it contains no extra features and employs a simple network architecture. Our re-implementation of BiLSTM-CRF achieves near state-of-the-art performance on POS and NER. Feedforward-History performs better on POS then on Chunking and NER with a faster decoding speed than BiLSTM-CRF. Feedforward-Mention2Vec performs slightly worse than BiLSTM-CRF on NER, but its decoding speed is faster and grows linearly in the number of named entity types.
 
 \section{Future Work}
 There are several potential extensions of this thesis we would like to work on in the future:
 
-First, Shallow Parsing, often referred as Chunking, is another classic sequence tagging task which can be solved using neural network models proposed in this thesis. We would like to compare different neural network models on Shallow Parsing and find the speed and accuracy relationship between these models.
+First, we would like to compare our implementations with the off-the-shelf sequence tagging tools, such as spaCy. We can further develop our models into applications with high data throughput. The applications can be used to analyze online data such as Twitter, and other social media data.
 
-Second, we would like to explore multitasking models which combine POS and NER. We can build a neural network tagging system to train and predict POS tags and NER tags jointly. The intermediate representations would benefit from considering linguistic hierarchies in the training process.
+Second, we would like to explore multitasking models which combine POS, Chunking and NER. We can build a neural network tagging system to train and predict POS tags, Chunking tags, and NER tags jointly. The intermediate representations would benefit from considering linguistic hierarchies in the training process.
 
 Third, in order to improve the performance of our sequence tagging system, we would like to combine the neural network models presented in this thesis. The easiest way to combine them is to use a voting method in post-process. During tagging, each model will predict a label for the input word, and we will take a majority vote on the output of the three models. The input word will be tagged with the label with the highest vote.
 
