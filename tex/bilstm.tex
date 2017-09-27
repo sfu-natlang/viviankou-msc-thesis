@@ -53,7 +53,7 @@ During training, we score every possible output sequence, and use a softmax laye
 
 \section{Experiments and Results}
 
-To evaluate BiLSTM models, we run BiLSTM with three configurations on POS and NER: BiLSTM with word features only (BiLSTM); BiLSTM with Character Embeddings (BiLSTM-Char); BiLSTM with Character Embeddings and a CRF layer (BiLSTM-CRF). We report the performance and decoding speed of the models on Penn Treebank data set for POS, CoNLL 2003 data set for NER, CoNLL 2000 data set for Chunking. The details of the data sets are shown in Table \ref{table:my-dataset}.
+To evaluate BiLSTM models, we run BiLSTM with three configurations on POS, NER, and Chunking: BiLSTM with word features only (BiLSTM); BiLSTM with Character Embeddings (BiLSTM-Char); BiLSTM with Character Embeddings and a CRF layer (BiLSTM-CRF). We report the performance and decoding speed of the models on Penn Treebank data set for POS, CoNLL 2003 data set for NER, CoNLL 2000 data set for Chunking. The details of the data sets are shown in Table \ref{table:my-dataset}.
 
 As in the implementation for feedforward models, we implement BiLSTM models using Python and the Tensorflow 1.0 library. The experiments were conducted on a Linux server with a single 10G Nvidia GeForce GPU. The experiments specification is shown in Table \ref{table:hardware}.
 
@@ -141,7 +141,7 @@ BiLSTM-CRF & 93.91 & 93.81 & \textbf{93.86} (+2.07)  \\ \hline
 Model       & POS & NER (CoNLL 2003) & Chunking    \\ \hline
 BiLSTM-CRF    & 9009     & 10100   &5390\\ \hline
 BiLSTM-Char        & 13992 (1.55$\times$)    & 11271 ($\times$1.12) &6616 ($\times$1.23) \\ \hline
-BiLSTM             & 23036 (2.56$\times$)   & 20740 ($\times$2.05)  &8567 ($\times$1.59)\\ \hline
+BiLSTM             & 23036 (2.56$\times$)   & 20740 ($\times$2.05)  &10321 ($\times$1.91)\\ \hline
 \end{tabular}
 \end{table}
 

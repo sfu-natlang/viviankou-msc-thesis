@@ -142,11 +142,12 @@ Lastly, we summarized all the experiment results and compared the performance an
 \section{Future Work}
 There are several potential extensions of this thesis we would like to work on in the future:
 
-First, we would like to compare our implementations with the off-the-shelf sequence tagging tools, such as spaCy. We can further develop our models into applications with high data throughput. The applications can be used to analyze online data such as Twitter, and other social media data.
+First, even though the main goal of this thesis is to compare different neural network models and reveal the speed vs accuracy trade-off, we would like to improve the performance of our models and minimize the accuracy gap between the our implementations and the state-of-the-art results, especially for Chunking. Since the number of training data in CoNLL 2000 for Chunking is limiting, the performance of Chunking can be improved by increasing the amount of training data by self-training. We can train a model on labeled training, run on lot of unlabeled data and then re-train on combined data sets. The same method can be applied on NER and POS.
 
-Second, we would like to explore multitasking models which combine POS, Chunking and NER. We can build a neural network tagging system to train and predict POS tags, Chunking tags, and NER tags jointly. The intermediate representations would benefit from considering linguistic hierarchies in the training process.
+Second, we would like to compare our implementations with the off-the-shelf sequence tagging tools, such as spaCy. We can further develop our models into applications with high data throughput. The applications can be used to analyze real time natural language data, such as Twitter, Facebook, Wikipedia, and even the web.
 
-Third, in order to improve the performance of our sequence tagging system, we would like to combine the neural network models presented in this thesis. The easiest way to combine them is to use a voting method in post-process. During tagging, each model will predict a label for the input word, and we will take a majority vote on the output of the three models. The input word will be tagged with the label with the highest vote.
+Third, we would like to explore multitasking models which combine POS, Chunking and NER. We can build a neural network tagging system to train and predict POS tags, Chunking tags, and NER tags jointly. The intermediate representations would benefit from considering linguistic hierarchies in the training process.
+
 
 
 %   BACK MATTER  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

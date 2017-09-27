@@ -13,8 +13,6 @@
 %   and version 1.3 or later is part of all distributions of LaTeX version
 %   2005/12/01 or later.
 %
-%   This work consists of the file sfuthesis.cls and template.tex.
-%
 %   This work has the LPPL maintenance status `maintained'. The Current
 %   Maintainer is Ross Churchley.
 %
@@ -86,7 +84,7 @@
 %
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{sfuthesis}[2015/05/01 v2.0.0 SFU Thesis/Dissertation Template]
+\ProvidesClass{sfuthesis}[2017/01/01 v2.2.0 SFU Thesis/Dissertation Template]
 
 
 %   CLASS OPTIONS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -164,19 +162,69 @@
 
 %   LINE SPACING  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%   Sets 1.5 line spacing for the document body and provides a command to set
-%   single-spacing for the "backmatter" (references, bibliography, appendices).
-%   These commands do not affect spacing inside figures, tables, and other
-%   floats, which remain single-spaced.
+%   (1) Sets 1.5 line spacing for the document body, excluding figures, tables,
+%   and other floats, which remain single-spaced.
+%
+%   (2) Provides a command to set single-spacing for chapter and section titles
+%       as well as the whole "backmatter" (references, bibliography, and any
+%       appendices). It would make more sense if we defined \smallspacing to be
+%       just \singlespacing, but it's a bit quirky; the setspace package source
+%       code has:
+%
+%           \newcommand{\singlespacing}{%
+%               \setstretch {\setspace@singlespace}%  normally 1
+%               \vskip \baselineskip  % Correction for coming into singlespace
+%           }
+%
+%       In our use case, we most commonly go in and out of single-spacing in
+%       chapter and section titles, and the extra \vskip\baselineskip is
+%       extremely noticible (as it's based on font size). We avoid this problem
+%       by defining \smallspacing as the portion of \singlespacing we actually
+%       need.
 %
 
 \RequirePackage{setspace}
-\newcommand{\defaultspacing}{\onehalfspacing}
-\newcommand{\smallspacing}{\singlespacing}
+\newcommand{\defaultspacing}{\onehalfspacing} % (1)
+\newcommand{\smallspacing}{\setstretch{\setspace@singlespace}}  % (2)
+\renewcommand{\backmatter}{%
+  \renewcommand{\defaultspacing}{\smallspacing}%
+  \clearpage%
+}
 
 \defaultspacing
-\renewcommand{\backmatter}{\smallspacing\clearpage}
 
+%   Set single-spacing for chapter and section titles. If you use a package
+%   (e.g. titlesec) that redefines the chapter- and section-printing macros,
+%   you will have to adjust the spacing yourself.
+%
+
+\pretocmd{\@chapter}{\smallspacing}{}{}
+\apptocmd{\@chapter}{\defaultspacing}{}{}
+
+\pretocmd{\@schapter}{\smallspacing}{}{}
+\apptocmd{\@schapter}{\defaultspacing}{}{}
+
+\pretocmd{\@sect}{\smallspacing}{}{}
+\apptocmd{\@sect}{\defaultspacing}{}{}
+
+\pretocmd{\@ssect}{\smallspacing}{}{}
+\apptocmd{\@ssect}{\defaultspacing}{}{}
+
+
+%   FOOTNOTES  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Remove the dividing line between body text and footnotes, replacing it with
+%   extra space. This is not formally part of the Library requirements, but
+%   makes our footnotes consistent with the preferred style in the official
+%   Word thesis template. We then add a full line space between footnotes on
+%   the same page; this is also not an official requirement but was suggested
+%   as a reasonable default by the Library's Thesis Assistant and the
+%   footnote-heavy Chicago style.
+%
+
+\def\footnoterule{\relax}
+\setlength{\skip\footins}{\baselineskip}
+\setlength{\footnotesep}{\baselineskip}
 
 %   PAGINATION  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -276,8 +324,7 @@
 \newcommand{\@copyrightnotice}{%
     \begin{minipage}{\dimexpr\textwidth-1in\relax}
         \small\centering
-        All rights reserved.\\
-        However, in accordance with the \textit{Copyright Act of Canada}, this work may be reproduced without authorization under the conditions for ``Fair Dealing.'' Therefore, limited reproduction of this work for the purposes of private study, research, education, satire, parody, criticism, review and news reporting is likely to be in accordance with the law, particularly if cited appropriately.
+        Copyright in this work rests with the author. Please ensure that any reproduction or re-use is done in accordance with the relevant national copyright legislation.
     \end{minipage}
 }
 
@@ -322,20 +369,21 @@
     \addtoToC{Approval}%
     \chapter*{Approval}%
     \smallspacing%
-    \@approvallabel{Name:}     \@approvalvalue{\@author}
-    \@approvallabel{Degree:}   \@approvalvalue{\@degree\ \@discipline}
-    \@approvallabel{Title:}    \@approvalvalue{\textit{\@title}}
-    \@approvallabel{\@committeelabel:}
-    \@committee
-    \vfill\vfill
-    \@approvallabel{\@datelabel:}
-                                \underline{\makebox[0.65\textwidth][l]{\@date}}
+    \@approvallabel{Name:}              \@approvalvalue{\@author}
+    \@approvallabel{Degree:}            \@approvalvalue{\@degree\ \@discipline}
+    \@approvallabel{Title:}             \@approvalvalue{\@title}
+    \@approvallabel{\@committeelabel:}  \@approvalvalue{\@committee}
+    \@approvallabel{\@datelabel:}       \@approvalvalue{\@date}
     \newpage
     \defaultspacing
 }
 
 %   The Word template uses tab stops to produce a table-like approval page.
 %   We reproduce this behaviour in LaTeX with fixed-width minipages.
+%   (It would be much easier to do this using a description list modified with
+%    the enumitem package. However, this would cause more trouble than it
+%    saved: prematurely including the enumitem package here creates a compile
+%    error if the user includes the same package with different options.)
 %   A bit of fiddling is needed to maintain consistent spacing when an
 %   \@approvalvalue minipage contains more than one line: for details, see
 %   http://tex.stackexchange.com/questions/34971/
@@ -352,10 +400,11 @@
 \newcommand{\@approvalvalue}[1]{%
     \begin{minipage}[t]{0.65\textwidth}%
         \raggedright%
-        \textbf{#1}
+        \bfseries%
+        #1
         \par\xdef\tpd{\the\prevdepth}
     \end{minipage}
-    \medskip\par\prevdepth\tpd
+    \bigskip\par\prevdepth\tpd
 }
 
 %   Implementation: Have \@committee store the committee, \committee set it,
@@ -363,28 +412,25 @@
 %   (see class options), the committee and date is labeled differently.
 
 \newcommand{\@committee}{\@MissingMetadata{committee}}
-\newcommand{\committee}[1]{\renewcommand{\@committee}{#1}}
+\newcommand{\committee}[1]{\renewcommand{\@committee}{\mdseries#1}}
 
 \newcommand{\chair}[2]{%
-    \begin{minipage}[t]{0.1\textwidth}%
-        \textbf{Chair:}
-    \end{minipage}%
-    \begin{minipage}[t]{0.55\textwidth}%
+    \textbf{Chair:}\quad
+    \begin{minipage}[t]{0.8\textwidth}%
         \raggedright
         #1 \newline
         #2
     \end{minipage}%
-    \vfill
+    \par%
+    \vspace{1.5\baselineskip}%
 }
 
 \newcommand{\member}[2]{%
-    \begin{minipage}[b]{0.45\textwidth}%
-        \raggedright
-        \textbf{#1} \newline
-        #2
-    \end{minipage}%
-    \hrulefill\par
-    \vfill
+    \raggedright
+    \textbf{#1} \newline
+    #2%
+    \par%
+    \vspace{\baselineskip}%
 }
 
 %   Theses in some degree programs do not require a defence. In these cases,
@@ -447,13 +493,13 @@
 %
 
 \newenvironment{dedication}{%
-    \addtoToC{Dedication}
     \chapter*{Dedication}
+    \addtoToC{Dedication}
     }{\newpage}
 
 \newenvironment{acknowledgements}{%
-    \addtoToC{Acknowledgements}
     \chapter*{Acknowledgements}
+    \addtoToC{Acknowledgements}
     }{\newpage}
 
 
