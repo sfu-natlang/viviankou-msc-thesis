@@ -2,7 +2,7 @@
 
 In this Chapter, we put together the final experiment results of the network models presented in this thesis, and provide an analysis of the results.
 
-Table \ref{table:my-label1} records the performance of the neural network models for POS chunking and NER. The POS performance is measured on the Penn Treebank data set, the NER performance is measured on the CoNLL 2003 data set, and the Chunking performance is measured on CoNLL 2000,. Table \ref{table:my-label1} also includes the results from the state-of-the-art models. While our implementations obtain lower accuracy score and F1 score than the state-of-art results, we emphasize that our main goal of this thesis is to compare different neural networks. Since the performance scores of the state-of-the-art model are high, we are willing to trade in some performance scores for speed improvement. Figure \ref{fig:comp1} and Figure \ref{fig:comp2} display two NER examples extracted from CoNLL 2003 where BiLSTM-CRF performs better than Feedforward-History and Feedforward-Mention2Vec. 
+Table \ref{table:my-label1} records the performance of the neural network models for POS, NER, and Chunking. The POS performance is measured on the Penn Treebank test data set, the NER performance is measured on the CoNLL 2003 test data set, and the Chunking performance is measured on CoNLL 2000 test data set. Table \ref{table:my-label1} also includes the results from the state-of-the-art models. While our implementations obtain lower accuracy scores and F1 scores than the state-of-art results, we emphasize that our main goal of this thesis is to compare different neural networks. Since the performance scores of the state-of-the-art model are already high, we are willing to trade in some performance scores for speed improvement. Figure \ref{fig:comp1} and Figure \ref{fig:comp2} display two NER examples extracted from CoNLL 2003 test data where BiLSTM-CRF performs better than Feedforward-History and Feedforward-Mention2Vec. 
 
 
 \begin{table}[h]
@@ -14,12 +14,13 @@ Table \ref{table:my-label1} records the performance of the neural network models
 Model        & Penn Treebank & CoNLL 2003 & CoNLL 2000     \\ \hline
 \text{\cite{ling2015finding}} & \textbf{97.78} & $-$ & $-$ \\ \hline
 \text{\cite{lample2016neural}} & $-$ & \textbf{90.94}  & $-$\\ \hline 
-\text{\cite{shen2005voting}} & $-$  & $-$ & \textbf{95.23}\\ \hline 
+\makecell{\text{\cite{shen2005voting}} \\ \text{\cite{gut-besser-chunker}}} & $-$  & $-$ & \makecell{\textbf{95.23} \\ 95.08}\\ \hline 
 Feedforward    & 95.89          & 83.29   & 90.43  \\ \hline
 Feedforward-History & 97.28     & 87.47   & 92.61     \\ \hline
-BiLSTM  & 96.04     & 84.78     & 91.79         \\ \hline
+BiLSTM  & 96.1    & 83.74     & 91.79         \\ \hline
 BiLSTM-Char & 97.21 & 87.93     & 92.98       \\ \hline
 BiLSTM-CRF & \textit{97.34}  & \textit{90.05}  & \textit{93.86}     \\ \hline
+Mention2Vec  & $-$    & 89.06  & 93.08  \\ \hline
 Feedforward-Mention2Vec  & $-$    & 88.6  & 92.61  \\ \hline
 BPE-Mention2Vec & 96.04  & $-$   & $-$   \\ \hline   
 \end{tabular}
@@ -43,24 +44,22 @@ BPE-Mention2Vec & 96.04  & $-$   & $-$   \\ \hline
 \end{figure}
 
 \begin{figure}
-\hspace{-1cm}
+\centering
 \begin{subfigure}{\linewidth}
-\includegraphics[width=1.1\linewidth]{NERbilstm2.pdf}
-\vspace{-3cm}
+\includegraphics[width=1.0\linewidth]{NERbilstm2.pdf}
+\vspace{-2.5cm}
 \caption{Result Obtained by BiLSTM-CRF}
 \end{subfigure}\par\medskip
-\hspace{-1cm}
 \begin{subfigure}{\linewidth}
 \vspace{-1cm}
-\includegraphics[width=1.1\linewidth]{NERmen.pdf}
-\vspace{-3cm}
+\includegraphics[width=1.0\linewidth]{NERmen.pdf}
+\vspace{-2.5cm}
 \caption{Result Obtained by Feedforward-Mention2Vec}
 \end{subfigure}
 \caption{An Comparison between BiLSTM-CRF and Feedforward-Mention2Vec on an NER Example}
 \label{fig:comp2}
 \end{figure}
 
-Table \ref{table:my-label2} records the decoding speed of different neural network models on the Penn Treebank, CoNLL 2003 and CoNLL 2000 test data. The models are sorted by their decoding speed in descending order. The decoding speed is measured by the number of words decoded per second in the test time. It is obvious that the fewer features used in the same model the faster the decoding speed of the model will be. In general, the greedy tagging systems using feedforward models are faster then the systems using BiLSTM models. Since the CRF based models introduce a transition matrix and uses dynamic programming algorithm to decode the sequence, they are slower than the models without the CRF layer.
 
 \begin{table}[h]
 \centering
@@ -80,11 +79,11 @@ BPE-Mention2Vec     & 4923  &  $-$  & $-$       \\ \hline
 \end{tabular}
 \end{table}
 
+Table \ref{table:my-label2} records the decoding speed of different neural network models on the Penn Treebank, CoNLL 2003 and CoNLL 2000 test data. The models are sorted by their decoding speed in descending order. The decoding speed is measured by the number of words decoded per second in the test time. It is obvious that the fewer features used in the same model the faster the decoding speed of the model will be. In general, the greedy tagging systems using feedforward models are faster then the systems using BiLSTM models. Since the CRF based models introduce a transition matrix and uses dynamic programming algorithm to decode the sequence, they are slower than the models without the CRF layer.
 
 
-Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural network models. Among the neural network models for POS, BiLSTM-CRF achieves the best per word accuracy 97.34\%, and Feedforward-History obtains the second best per word accuracy 97.28\%. Feedforward achieves the fastest decoding speed since it employs a simple neural network without extra features. The line in Figure \ref{fig:pos} connects BiLSTM-CRF which is the most accurate model and Feedforward which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, which makes them less ideal for POS. Feedforward-History is the fastest model with competitive performance on POS, and it is about 2 times faster than BiLSTM-CRF.
-
-\begin{figure}
+\begin{figure}[h]
+\centering
   \begin{tikzpicture}
 	\begin{axis}[%
 	ylabel={Accuracy},
@@ -99,14 +98,15 @@ Figure \ref{fig:pos} illustrates the trade-off between performance and decoding 
 		BiLSTM-Char={mark=square},
 		BiLSTM-CRF={mark=otimes*},%
 		BPE-Mention2Vec={mark=star}},%
-	legend style={at={(1.03,1)},anchor=north west,draw=black,fill=white,align=left}]
+	legend style={at={(1,1)},anchor=north east,
+    draw=black,fill=white,align=left}]
 	\addplot[scatter,only marks,%
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
     30967  95.89  Feedforward 
     19474  97.28  Feedforward-History 
-    23036  96.01  BiLSTM
+    23036  96.1   BiLSTM
     13992  97.21  BiLSTM-Char
     9009   97.34  BiLSTM-CRF
     4923   96.04  BPE-Mention2Vec
@@ -128,9 +128,10 @@ Figure \ref{fig:pos} illustrates the trade-off between performance and decoding 
   \label{fig:pos}
 \end{figure}
 
-Figure \ref{fig:ner} illustrates the trade-off between performance and speed of using different neural network models on CoNLL 2003. BiLSTM--CRF achieves the highest F1 Score 90.05, and Mention2Vec obtains the second best F1 Score 89.06. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features. The line in Figure \ref{fig:ner} connects the BiLSTM-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History. Models below the line are slower and less accurate, which makes them less ideal for NER. Our new model, Feedforward-Mention2Vec, comes very close to the line, and it achieves 88.6 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
+Figure \ref{fig:pos} illustrates the trade-off between performance and decoding speed in POS systems using different neural network models. Among the neural network models for POS, BiLSTM-CRF achieves the best per word accuracy 97.34\%, and Feedforward-History obtains the second best per word accuracy 97.28\%. Feedforward achieves the fastest decoding speed since it employs a simple neural network without extra features. The line in Figure \ref{fig:pos} connects BiLSTM-CRF which is the most accurate model and Feedforward which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History and BiLSTM-Char. Models below the line such as BPE-Mention2Vec are slower and less accurate, which makes them less ideal for POS. Feedforward-History is the fastest model with competitive performance on POS, and it is about 2 times faster than BiLSTM-CRF.
 
-\begin{figure}
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}
 	\begin{axis}[%
 	ylabel={$F1$ score},
@@ -146,14 +147,15 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
 		BiLSTM-CRF={mark=otimes*},%
 		Mention2Vec={mark=triangle},
 		Feedforward-Mention2Vec={mark=star}},%
-	legend style={at={(1.03,1)},anchor=north west,draw=black,fill=white,align=left}]
+	legend style={at={(1,1)},anchor=north east,
+    draw=black,fill=white,align=left}]
 	\addplot[scatter,only marks,%
 		scatter src=explicit symbolic]%
 	table[meta=label] {
     x     y      label
-    26819   83.59   Feedforward 
-    17609   87.27   Feedforward-History 
-    20740   84.78   BiLSTM 
+    26819   83.29   Feedforward 
+    17609   87.47   Feedforward-History 
+    20740   83.74   BiLSTM 
     11271   87.93   BiLSTM-Char
     10100   90.05   BiLSTM-CRF
     9701    89.06   Mention2Vec
@@ -161,7 +163,7 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
 	};
 	\addplot+ [mark=none]table {
     x     y      label
-    26819   83.59    Feedforward 
+    26819   83.29    Feedforward 
     10100   90.05   BiLSTM-CRF
     };
 	\addlegendentry{Feedforward}
@@ -177,10 +179,11 @@ Figure \ref{fig:ner} illustrates the trade-off between performance and speed of 
   \label{fig:ner}
 \end{figure}
 
-Figure \ref{fig:chunking} illustrates the trade-off between performance and speed of using different neural network models on CoNLL 2000. BiLSTM-CRF achieves the highest F1 Score 93.86, and Mention2Vec obtains the second best F1 Score 89.06. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features. The line in Figure \ref{fig:ner} connects the BiLSTM-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History. Models below the line are slower and less accurate, which makes them less ideal for Chunking.
+Figure \ref{fig:ner} illustrates the trade-off between performance and speed of using different neural network models on CoNLL 2003. BiLSTM--CRF achieves the highest F1 Score 90.05, and Mention2Vec obtains the second best F1 Score 89.06. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features. The line in Figure \ref{fig:ner} connects the BiLSTM-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History. Our new model, Feedforward-Mention2Vec, comes very close to the line, and it achieves 88.6 F1 score which is close to the best performance, and it is 1.3 times faster than the fully structured BiLSTM model.
 
 
-\begin{figure}
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}
 	\begin{axis}[%
 	ylabel={$F1$ score},
@@ -196,7 +199,8 @@ Figure \ref{fig:chunking} illustrates the trade-off between performance and spee
 		BiLSTM-CRF={mark=otimes*},%
 		Mention2Vec={mark=triangle},
 		Feedforward-Mention2Vec={mark=star}},%
-	legend style={at={(1.03,1)},anchor=north west,draw=black,fill=white,align=left}]
+	legend style={at={(1,1)},anchor=north east,
+    draw=black,fill=white,align=left}]
 	\addplot[scatter,only marks,%
 		scatter src=explicit symbolic]%
 	table[meta=label] {
@@ -227,6 +231,8 @@ Figure \ref{fig:chunking} illustrates the trade-off between performance and spee
   \label{fig:chunking}
 \end{figure}
 
+Figure \ref{fig:chunking} illustrates the trade-off between performance and speed of using different neural network models on CoNLL 2000. BiLSTM-CRF achieves the highest F1 Score 93.86, and Mention2Vec obtains the second best F1 Score 89.06. Feedforward achieves the fastest decoding speed since it employs a simple neural network with no extra features. The line in Figure \ref{fig:ner} connects the BiLSTM-CRF model which is the most accurate model and the Feedforward model which is the fastest model. The models above the line are faster but perform slightly worse than BiLSTM-CRF, such as Feedforward-History. Models below the line are slower and less accurate, which makes them less ideal for Chunking.
+
 As illustrated in Figure \ref{fig:pos}, Figure \ref{fig:ner} and Figure \ref{fig:chunking}, the greedy sequence tagging systems using a feedforward network (Feedforward-History) can achieve comparable performance and faster speed than the systems using recurrent models; the multitask model (Feedforward-Mention2Vec) performs competitively with the state-of-the-art model on NER.
 
 \begin{table}[h]
@@ -242,7 +248,7 @@ BiLSTM-CRF         & 90.05          & 85.90        & 10100                   & 7
 \end{tabular}
 \end{table}
 
-Table \ref{table:my-label3} compares the performance and decoding speed of BiLSTM-CRF and Feedforward-Mention2Vec on CoNLL 2003 and OntoNotes. It shows that Feedforward-Mention2Vec with a simple architecture can achieve competitive performance with BiLSTM-CRF on CoNLL 2003 and OntoNotes. The speed gap between Feedforward-Mention2Vec and BiLSTM-CRF grows as the number of named entity type increases. There is more speed benefit in using a multitask model like Feedforward-Mention2Vec when there are more named entity types to classify. 
+Table \ref{table:my-label3} compares the performance and decoding speed of BiLSTM-CRF and Feedforward-Mention2Vec on CoNLL 2003 and OntoNotes. It shows that Feedforward-Mention2Vec with a simpler architecture can achieve competitive performance with BiLSTM-CRF on CoNLL 2003 and OntoNotes. The speed gap between Feedforward-Mention2Vec and BiLSTM-CRF grows as the number of named entity type increases. There is more speed benefit in using a multitask model like Feedforward-Mention2Vec when there are more named entity types to classify. 
 
 
 

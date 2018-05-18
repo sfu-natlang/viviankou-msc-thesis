@@ -9,9 +9,9 @@ Inspired by the greedy parser system by \cite{chen2014fast}, we present a simila
 
 In our greedy tagging system, we use a feedforward network to make decisions on individual words, and we assume that the word to be labeled depends mainly on its neighbor words instead of the whole sentence. Besides the word features, the system also takes into account the lexical composition of the words (spelling features), and the previous tag decisions (previous tag features). Thereby, we represent this architecture as the Feedforward-History model. The way Feedforward-History incorporates word features is the same with the window approach proposed in \cite{collobert2011natural}. The difference between these two models is that Feedforward-History uses spelling features and previous tag features while the model in \cite{collobert2011natural} only uses word features.
 
-\begin{figure}
+\begin{figure}[h]
   \centering
-  \includegraphics[scale=0.6]{greedypos.pdf}
+  \includegraphics[width=1.0\linewidth]{greedypos.pdf}
  \caption{The architecture of a greedy tagging system using the Feedforward-History model on a POS example.}
   \label{fig:greedypos}
 \end{figure}
@@ -31,7 +31,7 @@ h_{i}=\textit{ReLU}\left( W_{1}^{w}x_{i}^{w}+W_{1}^{s}x_{i}^{s}+W_{1}^{l}x_{i}^{
 \end{equation}
 
 \noindent
-where $x^{w}$ represents the word features, $x^{s}$ represents the spelling features, $x^{l}$ represents previous tag features, $W_{1}$ is the weight parameters in the hidden layer, and $b_{1}$ is the bias of in the hidden layer. The output of the network is a probability distribution over tags, and its dimension is the size of all tags. The tag probability distribution is modeled by a softmax layer (\textit{softmax}) (\citeauthor{dugas2001incorporating}, \citeyear{dugas2001incorporating}):
+where $x^{w}$ represents the word features, $x^{s}$ represents the spelling features, $x^{l}$ represents previous tag features, $W_{1}$ is the weight parameters in the hidden layer, and $b_{1}$ is the bias of in the hidden layer. The output of the network is a probability distribution over tags, and its dimension is the size of all tags. The tag probability distribution is modeled by a softmax layer:
 
 \begin{equation}
 p_{i}=\textit{softmax}\left(W_{2}h_{i}+b_{2}\right),
@@ -56,9 +56,8 @@ L\left(\theta\right) = -log\left(\sum _{i}^{n}p_{i}\left(y_{i}\right)\right),
 
 In POS experiments, we train the models using the Penn Treebank training data and development data. Then, we decode the test data using trained models and record the per word accuracy and decoding time. In NER experiments, we train the models using the CoNLL 2003 training data and development data. Then we decode the test data using the trained models, and record the F1 score and decoding time. In Chunking experiments, we train the models using the CoNLL 2000 training data and development data. Then we decode the test data using the trained models, and record the F1 score and decoding time. The speed is measured by the average number of words decoded per second. We are also interested in the robustness of the Feedfoward-History model, so we build a model using a feedforward network with only word features, which serves as the baseline model in our experiments. The tagging system using a feedforward network with only word features is denoted as Feedforward in this thesis.
 
-We implement the models using Python and the Tensorflow 1.0 library. In NER experiments, because of the small amount of training data, we use GloVE pretrained word embedding where each word corresponds to a 100-dimensional embedding vector. We use the hyper-parameters defined in Syntaxnet (\citeauthor{andor2016globally}, \citeyear{andor2016globally}), which contains a greedy POS tagging system shown to achieve near the state-of-the-art performance. Specifically we use Adam (\citeauthor{kingma2014adam}, \citeyear{kingma2014adam}) for stochastic optimization, and set the learning rate to be 0.01. We use 1 hidden layer and set the hidden layer size to be 200. We have a batch implementation which can process multiple sentences at the same time, and we set the batch size to be 32 in the experiments. Table \ref{table:hyperparameters1} shows the hyperparameters. We initialize all the weight parameters using Xavier initialization (\citeauthor{glorot2011domain}, \citeyear{glorot2011domain}). The experiments specification is shown in Table \ref{table:hardware}.
 
-\begin{table}[]
+\begin{table}[h]
 \centering
 \caption{Hyperparameters used in Feedforward Models}
 \label{table:hyperparameters1}
@@ -75,7 +74,7 @@ batch size & 32 \\ \hline
 \end{tabular}
 \end{table}
 
-\begin{table}[]
+\begin{table}[h]
 \centering
 \caption{Performance of Feedforward Models on POS}
 \label{table:ff-table1}
@@ -86,10 +85,7 @@ Feedforward    & 95.89          & $-$     \\ \hline
 Feedforward-History & 97.28 (+1.39)    & 788 \\ \hline
 BiLSTM-CRF & 97.34 (+1.45) & 822 \\ \hline
 \end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
+\bigskip
 \caption{Performance of Feedforward Models on NER CoNLL 2003}
 \label{table:ff-table2}
 \begin{tabular}{|c|c|c|c|}
@@ -99,10 +95,7 @@ Feedforward    & 82.99       & 83.59    & 83.29 \\ \hline
 Feedforward-History & 87.68  & 87.27    & 87.47 (+4.18) \\ \hline
 BiLSTM-CRF & 89.93 & 90.16 & 90.05 (+6.76) \\ \hline
 \end{tabular}
-\end{table}
-
-\begin{table}[]
-\centering
+\bigskip
 \caption{Performance of Feedforward Models on Chunking}
 \label{table:ff-table3}
 \begin{tabular}{|c|c|c|c|}
@@ -114,7 +107,7 @@ BiLSTM-CRF & 93.91 & 93.81 & 93.86 (+3.43) \\ \hline
 \end{tabular}
 \end{table}
 
-\begin{table}[]
+\begin{table}[h]
 \centering
 \caption{Feedforward Models Decoding Speed (words/sec)}
 \label{table:ff-tabel4}
@@ -127,8 +120,10 @@ BiLSTM-CRF & 9009 (-3.43$\times$) & 10100 (-2.65$\times$) & 5390 (-3.14$\times$)
 \end{tabular}
 \end{table}
 
+The hardware specifications are listed in Table \ref{table:hardware}. In NER experiments, because of the small amount of training data, we use GloVE pretrained word embedding where each word corresponds to a 100-dimensional embedding vector. We use the hyperparameters defined in Syntaxnet (\citeauthor{alberti2017syntaxnet}, \citeyear{alberti2017syntaxnet}), which contains a greedy POS tagging system shown to achieve near the state-of-the-art performance. Specifically we use Adam (\citeauthor{kingma2014adam}, \citeyear{kingma2014adam}) for stochastic optimization, and set the learning rate to be 0.01. We use 1 hidden layer and set the hidden layer size to be 200. We have a batch implementation which can process multiple sentences at the same time, and we set the batch size to be 32 in the experiments. Table \ref{table:hyperparameters1} shows the hyperparameters. We initialize all the weight parameters using Xavier initialization (\citeauthor{glorot2011domain}, \citeyear{glorot2011domain}). The experiments specification is shown in Table \ref{table:hardware}.
 
-Table \ref{table:ff-table1} presents the POS results achieved by greedy feedforward models and BiLSTM-CRF. Table \ref{table:ff-table2} presents the final benchmark results including Precision, Recall, and F1 score of feedforward models on NER. Table \ref{table:ff-table3} presents the Chunking results. In all three sequence tagging tasks, BiLSTM-CRF outperforms Feedforward-History. BiLSTM-CRF improves the NER performance more because of the dependencies among output tags. Table \ref{table:ff-tabel4} shows the decoding speed of Feedforward and \ffa. The speed is measured by the number of words processed by the model per second.
+
+Table \ref{table:ff-table1} presents the POS results achieved by greedy feedforward models and BiLSTM-CRF. Table \ref{table:ff-table2} presents the final benchmark results including Precision, Recall, and F1 score of feedforward models on NER. Table \ref{table:ff-table3} presents the performance of the models on Chunking. In all three sequence tagging tasks, BiLSTM-CRF outperforms Feedforward-History. BiLSTM-CRF improves the NER performance the most because of the dependencies among output tags. Table \ref{table:ff-tabel4} shows the decoding speed of Feedforward and \ffa. \ffa{} has faster decoding speed then BiLSTM-CRF on all three sequence tagging tasks.
 
 
 
